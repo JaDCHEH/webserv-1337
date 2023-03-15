@@ -1,0 +1,15 @@
+error_page              hh
+									server
+{
+			listen         44          15
+				root            cjad
+				index          cjad 
+						location                  hhh
+	{
+		try_files 11 11 112
+	}
+	location hh
+	{
+		fastcgi_pass 11
+	}
+}
