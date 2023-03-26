@@ -4,18 +4,20 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <map>
+#include <string>
+#include <fstream>
+#include <iostream>
 
 typedef std::string	string;
 typedef std::vector<string> stringvect;
-typedef std::pair<string, stringvect>	Pairstring;
+typedef std::map<string, stringvect>	map;
 
 class location
 {
 public:
-	Pairstring	name;
-	Pairstring	try_files;
-	Pairstring	fastcgi_pass;
-	Pairstring	fastcgi_param;
+	stringvect _location;
+	map elements;
 };
 
 typedef std::vector<location> locationvect;
@@ -23,9 +25,7 @@ typedef std::vector<location> locationvect;
 class server
 {
 public:
-	Pairstring	listen;
-	Pairstring	root;
-	Pairstring	index;
+	map	elements;
 	locationvect location;
 };
 
@@ -34,8 +34,11 @@ typedef std::vector<server> servervect;
 class config
 {
 public:
-	Pairstring	error_page;
+	stringvect	error_page;
 	servervect servers;
+	void	conf(string conf);
+	void	check_conf();
 };
+string	get_words(string &line, stringvect &vector);
 
 #endif
