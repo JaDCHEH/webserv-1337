@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 
-string	get_words(string &line, stringvect &vector)
+string	get_words(string &line, stringvect& vector)
 {
 	string::iterator it = line.begin();
 	string word;
@@ -32,7 +32,7 @@ string	get_words(string &line, stringvect &vector)
 	return key;
 }
 
-int location_elements(string element)
+int Location::location_elements(const string &element)
 {
 	mapstring location_ele;
 
@@ -46,11 +46,10 @@ int location_elements(string element)
 	return 0;
 }
 
-location	location_fill(std::ifstream &ifs, string &line)
+void	Location::location_fill(std::ifstream &ifs, string &line)
 {
 	string word;
 	stringvect vector;
-	location location;
 
 	std::getline(ifs, line);
 	word = get_words(line,vector);
@@ -64,12 +63,12 @@ location	location_fill(std::ifstream &ifs, string &line)
 		word = get_words(line, vector);
 		if (location_elements(word) && vector.size() >= 1)
 		{
-			if (location.elements.find(word) != location.elements.end())
+			if (_elements.find(word) != _elements.end())
 			{
 				std::cout << word <<" is already presented in this block" << std::endl;
 				exit(0);
 			}
-			location.elements[word] = vector;
+			_elements[word] = vector;
 		}
 		else if (word == "}" && vector.size() == 0)
 			break;
@@ -84,7 +83,6 @@ location	location_fill(std::ifstream &ifs, string &line)
 		std::cout << "missing ending for the location block" << std::endl;
 		exit(0);
 	}
-	return location;
 }
 
 int serv_elements(string element)
@@ -102,15 +100,12 @@ int serv_elements(string element)
 	return 0;
 }
 
-server	server_fill(std::ifstream &ifs, string &line)
+Server&	Server::server_fill(std::ifstream &ifs, string &line)
 {
 	string word;
 	stringvect vector;
-	server	server;
-	int	listen = 0;
-	int	root = 0;
-	int	index = 0;
 	std::getline(ifs, line);
+	Location templocation;
 	word = get_words(line,vector);
 	if (word != "{" || vector.size() > 1)
 	{
@@ -122,13 +117,12 @@ server	server_fill(std::ifstream &ifs, string &line)
 		word = get_words(line, vector);
 		if (serv_elements(word) && vector.size() > 1)
 		{
-			if (server.elements.find(word) != server.elements.end())
+			if (_elements.find(word) != _elements.end())
 			{
 				std::cout << word << " is already presented in this block" << std::endl;
 				exit(0);
 			}
-			server.elements[word] = vector[0];
-			listen = 1;
+			_elements[word] = vector[0];
 		}
 		else if (word == "location")
 		{
@@ -140,7 +134,8 @@ server	server_fill(std::ifstream &ifs, string &line)
 				else{
 					if(vector[1].back() != '/')
 						vector[1] += '/';
-					server.location[vector[1]] = location_fill(ifs ,line);
+					templocation.location_fill(ifs, line);
+					_location[vector[1]] = templocation;
 				}
 		}
 		else if (word == "}" && vector.size() == 0)
@@ -156,7 +151,7 @@ server	server_fill(std::ifstream &ifs, string &line)
 		std::cout << "missing ending for the server block" << std::endl;
 		exit(0);
 	}
-	return (server);
+	return *this;
 }
 
 void	config::conf(string &conf)
@@ -170,6 +165,7 @@ void	config::conf(string &conf)
 	string line;
 	string word;
 	stringvect	vector;
+	Server serv;
 	int error_page = 0;
 	while (std::getline(ifs, line))
 	{
@@ -181,7 +177,7 @@ void	config::conf(string &conf)
 				std::cout << "arguments of error page are invalid" << std::endl;
 				exit(0);
 			}
-			this->error_page = vector;
+			this->_error_page = vector;
 			error_page = 1;
 		}
 		else if (word == "server")
@@ -194,7 +190,7 @@ void	config::conf(string &conf)
 					exit(0);
 				}
 				else
-					this->servers.push_back(server_fill(ifs, line));
+					_servers.push_back(serv.server_fill(ifs, line));
 			}
 		}
 		else
@@ -207,17 +203,17 @@ void	config::conf(string &conf)
 
 servervect::iterator	config::matchname(string &servername)
 {
-	servervect::iterator it = servers.begin();
-	servervect::iterator temp = servers.begin();
+	servervect::iterator it = _servers.begin();
+	servervect::iterator temp = _servers.begin();
 	int i = 0;
-	while (it != servers.end())
+	while (it != _servers.end())
 	{
-		if((*it).elements.find("servername") == (*it).elements.end() && !i){
+		if((*it)._elements.find("servername") == (*it)._elements.end() && !i){
 			i = 1;
 			temp = it;
 		}
 		else{
-			if ((*it).elements["servername"] == servername)
+			if ((*it)._elements["servername"] == servername)
 				return it;
 		}
 		it++;
@@ -225,24 +221,26 @@ servervect::iterator	config::matchname(string &servername)
 	return temp;
 }
 
-locationmap::iterator	server::matchlocation(string & uri, string &servername)
+locationmap::iterator	Server::matchlocation(string & uri, string &servername)
 {
 	int match = 0;
 
     if (std::filesystem::is_directory(uri)) {
-        uri += "/";
+        if (uri.back() != '/') {
+            uri += "/";
+        }
     } else {
         uri = uri.substr(0, uri.find_last_of("/"));
     }
-	for (locationmap::iterator i = location.begin(); i != location.end(); i++){
+	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
 		if (strncmp((*i).first.c_str(), uri.c_str(), (*i).first.size()) == 0){
 			if (match < (*i).first.size())
 				match = (*i).first.size();
 		}
 	}
-	for (locationmap::iterator i2 = location.begin(); i2 != location.end(); i2++){
+	for (locationmap::iterator i2 = _location.begin(); i2 != _location.end(); i2++){
 		if ((*i2).first.size() == match)
 			return i2;
 	}
-	return location.end();
+	return _location.end();
 }

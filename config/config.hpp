@@ -16,31 +16,34 @@ typedef std::vector<string> stringvect;
 typedef std::map<string, stringvect>	mapvect;
 typedef std::map<string, string>	mapstring;
 
-class location
+class Location
 {
 public:
-	mapvect elements;
+	mapvect _elements;
+	void location_fill(std::ifstream &ifs, string &line);
+	int location_elements(const string &element);
 };
 
-typedef std::vector<location> locationvect;
-typedef std::map<string, location> locationmap;
+typedef std::vector<Location> locationvect;
+typedef std::map<string, Location> locationmap;
 
-class server
+class Server
 {
 public:
-	mapstring	elements;
-	locationmap location;
+	mapstring	_elements;
+	locationmap _location;
 	locationmap::iterator	matchlocation(string &location, string &servername);
+	Server&	server_fill(std::ifstream &ifs, string &line);
 };
 
-typedef std::vector<server> servervect;
-typedef std::map<string, server>;
+typedef std::vector<Server> servervect;
+typedef std::map<string, Server>;
 
 class config
 {
 public:
-	stringvect	error_page;
-	servervect servers;
+	stringvect	_error_page;
+	servervect _servers;
 	void	conf(string &conf);
 	servervect::iterator	matchname(string &servername);
 };
