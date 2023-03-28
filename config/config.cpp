@@ -94,9 +94,12 @@ int serv_elements(string element)
 	serv_ele["bodysize"] = "";
 	serv_ele["root"] = "";
 	serv_ele["servername"] = "";
+	serv_ele["listen"] = "";
 	serv_ele["upload"] = "";
 	if(serv_ele.find(element) != serv_ele.end())
+	{
 		return 1;
+	}
 	return 0;
 }
 
@@ -107,7 +110,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 	std::getline(ifs, line);
 	Location templocation;
 	word = get_words(line,vector);
-	if (word != "{" || vector.size() > 1)
+	if (word != "{" || vector.size() == 1)
 	{
 		std::cout << "server block is unvalid" << std::endl;
 		exit(0);
@@ -115,7 +118,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
-		if (serv_elements(word) && vector.size() > 1)
+		if (serv_elements(word) && vector.size() == 1)
 		{
 			if (_elements.find(word) != _elements.end())
 			{
@@ -142,7 +145,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 			break;
 		else
 		{
-			std::cout << "unvalid element in the server block" << std::endl;
+			std::cout << word <<" unvalid element in the server block" << std::endl;
 			exit(0);
 		}
 	}
@@ -154,7 +157,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 	return *this;
 }
 
-void	config::conf(string &conf)
+void	config::conf(string conf)
 {
 	std::ifstream ifs(conf);
 	if (!ifs)
@@ -224,8 +227,10 @@ servervect::iterator	config::matchname(string &servername)
 locationmap::iterator	Server::matchlocation(string & uri, string &servername)
 {
 	int match = 0;
+	const char *c_uri = uri.c_str();
+	DIR *dir = opendir(c_uri);
 
-    if (std::filesystem::is_directory(uri)) {
+    if (dir) {
         if (uri.back() != '/') {
             uri += "/";
         }

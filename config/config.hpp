@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iostream>
 #include <dirent.h>
-#include <filesystem>
 
 typedef std::string	string;
 typedef std::vector<string> stringvect;
@@ -37,14 +36,13 @@ public:
 };
 
 typedef std::vector<Server> servervect;
-typedef std::map<string, Server>;
 
 class config
 {
 public:
 	stringvect	_error_page;
 	servervect _servers;
-	void	conf(string &conf);
+	void	conf(string conf);
 	servervect::iterator	matchname(string &servername);
 };
 string	get_words(string &line, stringvect &vector);
