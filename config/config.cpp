@@ -32,19 +32,29 @@ string	get_words(string &line, stringvect &vector)
 	return key;
 }
 
-location	location_fill(std::ifstream &ifs, string &line, stringvect vect)
+int location_elements(string element)
+{
+	mapstring location_ele;
+
+	location_ele["index"] = "";
+	location_ele["allowed_methods"] = "";
+	location_ele["autoindex"] = "";
+	location_ele["root"] = "";
+	location_ele["upload"] = "";
+	if(location_ele.find(element) != location_ele.end())
+		return 1;
+	return 0;
+}
+
+location	location_fill(std::ifstream &ifs, string &line)
 {
 	string word;
 	stringvect vector;
 	location location;
-	int try_files=0;
-	int fastcgi_pass=0;
-	int allowed_methods=0;
 
-	location._location = vect;
 	std::getline(ifs, line);
 	word = get_words(line,vector);
-	if (word != "{" || vector.size() > 1)
+	if (word != "{" || vector.size() >= 1)
 	{
 		std::cout << "server block is unvalid" << std::endl;
 		exit(0);
@@ -52,35 +62,14 @@ location	location_fill(std::ifstream &ifs, string &line, stringvect vect)
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
-		if (word == "try_files" && vector.size() >= 1)
+		if (location_elements(word) && vector.size() >= 1)
 		{
-			if (location.elements.find("try_files") != location.elements.end())
+			if (location.elements.find(word) != location.elements.end())
 			{
-				std::cout << "try_files is already presented in this block" << std::endl;
+				std::cout << word <<" is already presented in this block" << std::endl;
 				exit(0);
 			}
-			location.elements["try_files"] = vector;
-			try_files = 1;
-		}
-		else if (word == "allowed_method" && vector.size() >= 1)
-		{
-			if (location.elements.find("allowed_methods") != location.elements.end())
-			{
-				std::cout << "allowed_methods is already presented in this block" << std::endl;
-				exit(0);
-			}
-			location.elements["allowed_methods"] = vector;
-			allowed_methods = 1;
-		}
-		else if (word == "fastcgi_pass" && vector.size() >= 1)
-		{
-			if (location.elements.find("fastcgi_pass") != location.elements.end())
-			{
-				std::cout << "fastcgi_pass is already presented in this block" << std::endl;
-				exit(0);
-			}
-			location.elements["fastcgi_pass"] = vector;
-			fastcgi_pass = 1;
+			location.elements[word] = vector;
 		}
 		else if (word == "}" && vector.size() == 0)
 			break;
@@ -96,6 +85,21 @@ location	location_fill(std::ifstream &ifs, string &line, stringvect vect)
 		exit(0);
 	}
 	return location;
+}
+
+int serv_elements(string element)
+{
+	std::map<string, string> serv_ele;
+
+	serv_ele["index"] = "";
+	serv_ele["error_page"] = "";
+	serv_ele["bodysize"] = "";
+	serv_ele["root"] = "";
+	serv_ele["servername"] = "";
+	serv_ele["upload"] = "";
+	if(serv_ele.find(element) != serv_ele.end())
+		return 1;
+	return 0;
 }
 
 server	server_fill(std::ifstream &ifs, string &line)
@@ -116,35 +120,15 @@ server	server_fill(std::ifstream &ifs, string &line)
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
-		if (word == "listen" && vector.size() >= 1)
+		if (serv_elements(word) && vector.size() > 1)
 		{
-			if (server.elements.find("listen") != server.elements.end())
+			if (server.elements.find(word) != server.elements.end())
 			{
-				std::cout << "listen is already presented in this block" << std::endl;
+				std::cout << word << " is already presented in this block" << std::endl;
 				exit(0);
 			}
-			server.elements["listen"] = vector;
+			server.elements[word] = vector[0];
 			listen = 1;
-		}
-		else if (word == "root" && vector.size() == 1)
-		{
-			if (server.elements.find("root") != server.elements.end())
-			{
-				std::cout << "root is already presented in this block" << std::endl;
-				exit(0);
-			}
-			server.elements["root"] = vector;
-			root = 1;
-		}
-		else if (word == "index" && vector.size() == 1)
-		{
-			if (server.elements.find("index") != server.elements.end())
-			{
-				std::cout << "index is already presented in this block" << std::endl;
-				exit(0);
-			}
-			server.elements["index"] = vector;
-			index = 1;
 		}
 		else if (word == "location")
 		{
@@ -153,8 +137,11 @@ server	server_fill(std::ifstream &ifs, string &line)
 					std::cout << "location block is wrong" << std::endl;
 					exit(0);
 				}
-				else
-					server.location.push_back(location_fill(ifs ,line, vector));
+				else{
+					if(vector[1].back() != '/')
+						vector[1] += '/';
+					server.location[vector[1]] = location_fill(ifs ,line);
+				}
 		}
 		else if (word == "}" && vector.size() == 0)
 			break;
@@ -172,7 +159,7 @@ server	server_fill(std::ifstream &ifs, string &line)
 	return (server);
 }
 
-void	config::conf(string conf)
+void	config::conf(string &conf)
 {
 	std::ifstream ifs(conf);
 	if (!ifs)
@@ -215,6 +202,47 @@ void	config::conf(string conf)
 			std::cout << word << "  unvalid argument in the conf file" << std::endl;
 			exit(0);
 		}
+	}	
+}
+
+servervect::iterator	config::matchname(string &servername)
+{
+	servervect::iterator it = servers.begin();
+	servervect::iterator temp = servers.begin();
+	int i = 0;
+	while (it != servers.end())
+	{
+		if((*it).elements.find("servername") == (*it).elements.end() && !i){
+			i = 1;
+			temp = it;
+		}
+		else{
+			if ((*it).elements["servername"] == servername)
+				return it;
+		}
+		it++;
 	}
-	
+	return temp;
+}
+
+locationmap::iterator	server::matchlocation(string & uri, string &servername)
+{
+	int match = 0;
+
+    if (std::filesystem::is_directory(uri)) {
+        uri += "/";
+    } else {
+        uri = uri.substr(0, uri.find_last_of("/"));
+    }
+	for (locationmap::iterator i = location.begin(); i != location.end(); i++){
+		if (strncmp((*i).first.c_str(), uri.c_str(), (*i).first.size()) == 0){
+			if (match < (*i).first.size())
+				match = (*i).first.size();
+		}
+	}
+	for (locationmap::iterator i2 = location.begin(); i2 != location.end(); i2++){
+		if ((*i2).first.size() == match)
+			return i2;
+	}
+	return location.end();
 }

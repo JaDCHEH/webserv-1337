@@ -8,36 +8,41 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <dirent.h>
+#include <filesystem>
 
 typedef std::string	string;
 typedef std::vector<string> stringvect;
-typedef std::map<string, stringvect>	map;
+typedef std::map<string, stringvect>	mapvect;
+typedef std::map<string, string>	mapstring;
 
 class location
 {
 public:
-	stringvect _location;
-	map elements;
+	mapvect elements;
 };
 
 typedef std::vector<location> locationvect;
+typedef std::map<string, location> locationmap;
 
 class server
 {
 public:
-	map	elements;
-	locationvect location;
+	mapstring	elements;
+	locationmap location;
+	locationmap::iterator	matchlocation(string &location, string &servername);
 };
 
 typedef std::vector<server> servervect;
+typedef std::map<string, server>;
 
 class config
 {
 public:
 	stringvect	error_page;
 	servervect servers;
-	void	conf(string conf);
-	void	check_conf();
+	void	conf(string &conf);
+	servervect::iterator	matchname(string &servername);
 };
 string	get_words(string &line, stringvect &vector);
 

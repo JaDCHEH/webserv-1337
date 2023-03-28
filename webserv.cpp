@@ -16,5 +16,4 @@ int main(int ac, char **av)
 	serverconf.conf(av[1]);
 	stringvect line;
 	get_words(firstline, line);
-	
 }
