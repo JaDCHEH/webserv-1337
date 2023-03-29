@@ -18,9 +18,12 @@ typedef std::map<string, string>	mapstring;
 class Location
 {
 public:
-	mapvect _elements;
+	stringvect _allowed_methods;
+	mapstring _elements;
 	void location_fill(std::ifstream &ifs, string &line);
 	int location_elements(const string &element);
+	void check_validity();
+	void must_fill(const string &root);
 };
 
 typedef std::vector<Location> locationvect;
@@ -33,6 +36,7 @@ public:
 	locationmap _location;
 	locationmap::iterator	matchlocation(string &location, string &servername);
 	Server&	server_fill(std::ifstream &ifs, string &line);
+	void must_fill(const string &error_page);
 };
 
 typedef std::vector<Server> servervect;
@@ -40,10 +44,11 @@ typedef std::vector<Server> servervect;
 class config
 {
 public:
-	stringvect	_error_page;
+	string	_error_page;
 	servervect _servers;
 	void	conf(string conf);
 	servervect::iterator	matchname(string &servername);
+	void must_fill();
 };
 string	get_words(string &line, stringvect &vector);
 

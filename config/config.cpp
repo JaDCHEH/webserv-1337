@@ -37,52 +37,76 @@ int Location::location_elements(const string &element)
 	mapstring location_ele;
 
 	location_ele["index"] = "";
-	location_ele["allowed_methods"] = "";
 	location_ele["autoindex"] = "";
 	location_ele["root"] = "";
 	location_ele["upload"] = "";
+	location_ele["redir"] = "";
 	if(location_ele.find(element) != location_ele.end())
 		return 1;
 	return 0;
+}
+
+void	Location::check_validity()
+{
+	for (stringvect::iterator it = _allowed_methods.begin(); it != _allowed_methods.end(); it++)
+	{
+		if ((*it) != "GET" || (*it) != "DELETE" || (*it) != "POST")
+		{
+			std::cerr << "Unvalid method in the configuration file" << std::endl;
+			exit(1);
+		}
+	}
 }
 
 void	Location::location_fill(std::ifstream &ifs, string &line)
 {
 	string word;
 	stringvect vector;
+	int allowed = 0;
 
 	std::getline(ifs, line);
 	word = get_words(line,vector);
 	if (word != "{" || vector.size() >= 1)
 	{
-		std::cout << "server block is unvalid" << std::endl;
+		std::cerr << "server block is unvalid" << std::endl;
 		exit(0);
 	}
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
-		if (location_elements(word) && vector.size() >= 1)
+		if (word == "allowed_methods")
+		{
+			if (allowed == 1)
+			{
+				std::cerr << word <<" is already presented in this block" << std::endl;
+				exit(0);
+			}
+			_allowed_methods = vector;
+			allowed = 1;
+		}
+		if (location_elements(word) && vector.size() == 1)
 		{
 			if (_elements.find(word) != _elements.end())
 			{
-				std::cout << word <<" is already presented in this block" << std::endl;
+				std::cerr << word <<" is already presented in this block" << std::endl;
 				exit(0);
 			}
-			_elements[word] = vector;
+			_elements[word] = vector[0];
 		}
 		else if (word == "}" && vector.size() == 0)
 			break;
 		else
 		{
-			std::cout << "unvalid element in the location block" << std::endl;
+			std::cerr << "unvalid element " << word << " or arguments in the location block" << std::endl;
 			exit(0);
 		}
 	}
 	if (word != "}") 
 	{
-		std::cout << "missing ending for the location block" << std::endl;
+		std::cerr << "missing ending for the location block" << std::endl;
 		exit(0);
 	}
+	check_validity();
 }
 
 int serv_elements(string element)
@@ -112,7 +136,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 	word = get_words(line,vector);
 	if (word != "{" || vector.size() == 1)
 	{
-		std::cout << "server block is unvalid" << std::endl;
+		std::cerr << "server block is unvalid" << std::endl;
 		exit(0);
 	}
 	while (std::getline(ifs, line))
@@ -122,7 +146,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 		{
 			if (_elements.find(word) != _elements.end())
 			{
-				std::cout << word << " is already presented in this block" << std::endl;
+				std::cerr << word << " is already presented in this block" << std::endl;
 				exit(0);
 			}
 			_elements[word] = vector[0];
@@ -131,7 +155,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 		{
 				if (vector.size() != 1)
 				{
-					std::cout << "location block is wrong" << std::endl;
+					std::cerr << "location block is wrong" << std::endl;
 					exit(0);
 				}
 				else{
@@ -145,13 +169,13 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 			break;
 		else
 		{
-			std::cout << word <<" unvalid element in the server block" << std::endl;
+			std::cerr << word <<" unvalid element in the server block" << std::endl;
 			exit(0);
 		}
 	}
 	if (word != "}")
 	{
-		std::cout << "missing ending for the server block" << std::endl;
+		std::cerr << "missing ending for the server block" << std::endl;
 		exit(0);
 	}
 	return *this;
@@ -162,7 +186,7 @@ void	config::conf(string conf)
 	std::ifstream ifs(conf);
 	if (!ifs)
 	{
-		std::cout << "This file doesn't exist!" << std::endl;
+		std::cerr << "This file doesn't exist!" << std::endl;
 		exit(0);
 	}
 	string line;
@@ -170,6 +194,7 @@ void	config::conf(string conf)
 	stringvect	vector;
 	Server serv;
 	int error_page = 0;
+	_error_page = "";
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
@@ -177,10 +202,10 @@ void	config::conf(string conf)
 		{
 			if (vector.size() != 1 || error_page == 1)
 			{
-				std::cout << "arguments of error page are invalid" << std::endl;
+				std::cerr << "arguments of error page are invalid" << std::endl;
 				exit(0);
 			}
-			this->_error_page = vector;
+			_error_page = vector[0];
 			error_page = 1;
 		}
 		else if (word == "server")
@@ -189,7 +214,7 @@ void	config::conf(string conf)
 			{
 				if (vector.size() > 0)
 				{
-					std::cout << "server block is wrong" << std::endl;
+					std::cerr << "server block is wrong" << std::endl;
 					exit(0);
 				}
 				else
@@ -198,10 +223,43 @@ void	config::conf(string conf)
 		}
 		else
 		{
-			std::cout << word << "  unvalid argument in the conf file" << std::endl;
-			exit(0);
+			std::cerr << word << "  unvalid argument in the conf file" << std::endl;
+			exit(1);
 		}
-	}	
+	}
+	if (!_servers.size())
+	{
+		std::cerr <<  "conf file must have at least 1 server block" << std::endl;
+		exit(1);
+	}
+}
+
+void Location::must_fill(const string &root)
+{
+	if (_elements.find("root") == _elements.end())
+		_elements["root"] = root;
+	if (_elements.find("auto_index") == _elements.end())
+		_elements["auto_index"] = "off";
+}
+
+void Server::must_fill(const string &error_page)
+{
+	if (_elements.find("root") == _elements.end())
+		_elements["root"] = "/";
+	if (_elements.find("listen") == _elements.end())
+		_elements["listen"] = "8080";
+	if (_elements.find("error_page") == _elements.end())
+		_elements["error_page"] = error_page;
+	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
+		(*it).second.must_fill(_elements["root"]);
+}
+
+void config::must_fill()
+{
+	if (_error_page == "")
+		_error_page = "database/Defaulterror.html";
+	for (servervect::iterator it = _servers.begin(); it != _servers.end(); it++)
+		(*it).must_fill(_error_page);
 }
 
 servervect::iterator	config::matchname(string &servername)
