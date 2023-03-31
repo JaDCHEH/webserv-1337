@@ -5,7 +5,10 @@
 class request
 {
 public:
-	stringvect request_line;
+	string METHOD;
+	string uri;
+	string version;
+	string host;
 };
 
 request::request(/* args */)

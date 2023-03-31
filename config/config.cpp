@@ -32,6 +32,27 @@ string	get_words(string &line, stringvect& vector)
 	return key;
 }
 
+string 		Location::get_element(string key)
+{
+	return(_elements[key]);
+}
+int	Location::is_method_allowed(string method)
+{
+	for (stringvect::iterator it = _allowed_methods.begin(); it != _allowed_methods.end(); it++)
+	{
+		if ((*it) == method)
+			return 1;
+	}
+	return 0;
+}
+
+int	Location::find_element(string element)
+{
+	if (_elements.find(element) != _elements.end())
+		return 1;
+	return 0;
+}
+
 int Location::location_elements(const string &element)
 {
 	mapstring location_ele;
@@ -40,7 +61,7 @@ int Location::location_elements(const string &element)
 	location_ele["autoindex"] = "";
 	location_ele["root"] = "";
 	location_ele["upload"] = "";
-	location_ele["redir"] = "";
+	location_ele["return"] = "";
 	if(location_ele.find(element) != location_ele.end())
 		return 1;
 	return 0;
@@ -58,6 +79,16 @@ void	Location::check_validity()
 	}
 }
 
+void	Location::set_real(int a)
+{
+	_real = a;
+}
+
+int		Location::get_real()
+{
+	return _real;
+}
+
 void	Location::location_fill(std::ifstream &ifs, string &line)
 {
 	string word;
@@ -65,6 +96,7 @@ void	Location::location_fill(std::ifstream &ifs, string &line)
 	int allowed = 0;
 
 	std::getline(ifs, line);
+	_real = 1;
 	word = get_words(line,vector);
 	if (word != "{" || vector.size() >= 1)
 	{
@@ -262,29 +294,48 @@ void config::must_fill()
 		(*it).must_fill(_error_page);
 }
 
-servervect::iterator	config::matchname(string &servername)
+int	Server::find_element(string key)
+{
+	if (_elements.find(key) == _elements.end())
+		return 1;
+	return 0;
+}
+
+void	Server::set_element(string key, string &value)
+{
+	_elements[key] = value;
+}
+
+string Server::get_element(string key)
+{
+	return(_elements[key]);
+}
+
+Server&	config::matchname(string &servername)
 {
 	servervect::iterator it = _servers.begin();
 	servervect::iterator temp = _servers.begin();
 	int i = 0;
 	while (it != _servers.end())
 	{
-		if((*it)._elements.find("servername") == (*it)._elements.end() && !i){
+		if((*it).find_element("servername") && !i){
 			i = 1;
 			temp = it;
 		}
 		else{
-			if ((*it)._elements["servername"] == servername)
-				return it;
+			if ((*it).get_element("servername") == servername)
+				return *it;
 		}
 		it++;
 	}
-	return temp;
+	return *temp;
 }
 
-locationmap::iterator	Server::matchlocation(string & uri, string &servername)
+Location&	Server::matchlocation(string & uri)
 {
 	int match = 0;
+	Location fake;
+	fake.set_real(-1);
 	const char *c_uri = uri.c_str();
 	DIR *dir = opendir(c_uri);
 
@@ -295,6 +346,7 @@ locationmap::iterator	Server::matchlocation(string & uri, string &servername)
     } else {
         uri = uri.substr(0, uri.find_last_of("/"));
     }
+	closedir(dir);
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
 		if (strncmp((*i).first.c_str(), uri.c_str(), (*i).first.size()) == 0){
 			if (match < (*i).first.size())
@@ -303,7 +355,7 @@ locationmap::iterator	Server::matchlocation(string & uri, string &servername)
 	}
 	for (locationmap::iterator i2 = _location.begin(); i2 != _location.end(); i2++){
 		if ((*i2).first.size() == match)
-			return i2;
+			return (*i2).second;
 	}
-	return _location.end();
+	return fake;
 }
