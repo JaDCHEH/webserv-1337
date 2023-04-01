@@ -5,10 +5,11 @@
 class request
 {
 public:
-	string METHOD;
-	string uri;
-	string version;
-	string host;
+	string	METHOD;
+	string	uri;
+	string	version;
+	string	host;
+	int		_writing_status;
 };
 
 request::request(/* args */)

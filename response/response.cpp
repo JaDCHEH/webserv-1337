@@ -90,9 +90,13 @@ void	response::unvalid_response(request &request, config &config, string code)
 	string errorpage = _server.get_element("error_page");
 	if (code == "301")
 		fill_header("Location", _location.get_element("return"));
+	FILE *file = fopen(errorpage.c_str(), "rb");
+	fseek(file, 0, SEEK_END);
 	fill_header("content_type", get_content_type (errorpage.substr(errorpage.find_last_of("."))));
+	fill_header("content_lenght", std::to_string(ftell(file)));
+	fclose(file);
 	_headers += "\r\n";
-
+	
 }
 
 void	response::Create_response(request & request, config & config, string code)

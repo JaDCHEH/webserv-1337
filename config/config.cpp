@@ -281,6 +281,12 @@ void Server::must_fill(const string &error_page)
 		_elements["error_page"] = error_page;
 	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
 		it->second.must_fill(_elements["root"]);
+	std::ifstream ifs(_elements["error_page"]);
+	if (!ifs)
+	{
+		std::cerr << "the error page in the conf file doesn't exist" << std::endl;
+		exit(1);
+	}
 }
 
 void config::must_fill()
@@ -289,6 +295,12 @@ void config::must_fill()
 		_error_page = "database/Defaulterror.html";
 	for (servervect::iterator it = _servers.begin(); it != _servers.end(); it++)
 		it->must_fill(_error_page);
+	std::ifstream ifs(_error_page);
+	if (!ifs)
+	{
+		std::cerr << "the error page in the conf file doesn't exist" << std::endl;
+		exit(1);
+	}
 }
 
 int	Server::find_element(string key)
