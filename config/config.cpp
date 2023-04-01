@@ -38,11 +38,8 @@ string 		Location::get_element(string key)
 }
 int	Location::is_method_allowed(string method)
 {
-	for (stringvect::iterator it = _allowed_methods.begin(); it != _allowed_methods.end(); it++)
-	{
-		if ((*it) == method)
-			return 1;
-	}
+	if (std::find(_allowed_methods.begin(), _allowed_methods.end(), method) != _allowed_methods.end())
+		return 1;
 	return 0;
 }
 
@@ -283,7 +280,7 @@ void Server::must_fill(const string &error_page)
 	if (_elements.find("error_page") == _elements.end())
 		_elements["error_page"] = error_page;
 	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
-		(*it).second.must_fill(_elements["root"]);
+		it->second.must_fill(_elements["root"]);
 }
 
 void config::must_fill()
@@ -291,7 +288,7 @@ void config::must_fill()
 	if (_error_page == "")
 		_error_page = "database/Defaulterror.html";
 	for (servervect::iterator it = _servers.begin(); it != _servers.end(); it++)
-		(*it).must_fill(_error_page);
+		it->must_fill(_error_page);
 }
 
 int	Server::find_element(string key)
@@ -318,12 +315,12 @@ Server&	config::matchname(string &servername)
 	int i = 0;
 	while (it != _servers.end())
 	{
-		if((*it).find_element("servername") && !i){
+		if(it->find_element("servername") && !i){
 			i = 1;
 			temp = it;
 		}
 		else{
-			if ((*it).get_element("servername") == servername)
+			if (it->get_element("servername") == servername)
 				return *it;
 		}
 		it++;

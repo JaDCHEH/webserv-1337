@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <dirent.h>
+#include <algorithm>
 
 typedef std::string	string;
 typedef std::vector<string> stringvect;

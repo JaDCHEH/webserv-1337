@@ -65,6 +65,7 @@
 		"iostream": "cpp",
 		"stack": "cpp",
 		"map": "cpp",
-		"__tree": "cpp"
+		"__tree": "cpp",
+		"serv": "cpp"
 	}
 }

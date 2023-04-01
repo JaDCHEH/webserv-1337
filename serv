@@ -1,13 +1,23 @@
-int serv_elements(string element)
-{
-	std::map<string, string> serv_ele;
-
-	serv_ele["index"] = "";
-	serv_ele["allowed_methods"] = "";
-	serv_ele["autoindex"] = "";
-	serv_ele["root"] = "";
-	serv_ele["upload"] = "";
-	if(serv_ele.find(element) != serv_ele.end())
-		return 1;
-	return 0;
+	_extention_map["text/html"] = ".html";
+	_extention_map["text/plain"] = ".txt";
+	_extention_map["application/json"] = ".json";
+	_extention_map["application/xml"] = ".xml";
+	_extention_map["image/png"] = ".png";
+	_extention_map["image/jpeg"] = ".jpeg";
+	_extention_map["image/gif"] = ".gif";
+	_extention_map["application/pdf"] = ".pdf";
+	_extention_map["application/zip"] = ".zip";
+	_extention_map["application/javascript"] = ".js";
+	_extention_map["application/json"] = ".json";
+	_extention_map["application/pdf"] = ".pdf";
+	_extention_map["application/xml"] = ".xml";
+	_extention_map["audio/webm"] = ".weba";
+	_extention_map["image/gif"] = ".gif";
+	_extention_map["image/jpeg"] = ".jpeg";
+	_extention_map["image/png"] = ".png";
+	_extention_map["image/webp"] = ".webp";
+	_extention_map["message/http"] = ".http";
+	_extention_map["text/css"] = ".css";
+	_extention_map["video/mp4"]= ".mp4";
+	_extention_map["video/mpeg"] = ".mpeg";
 }

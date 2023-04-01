@@ -15,6 +15,47 @@ void response::_codes()
 	_code_map["204"] = "No Content";
 	_code_map["500"] = "Internal Server Error";
 }
+void	response::_extentions()
+{
+	_extention_map["text/html"] = ".html";
+	_extention_map["text/plain"] = ".txt";
+	_extention_map["application/json"] = ".json";
+	_extention_map["application/xml"] = ".xml";
+	_extention_map["image/gif"] = ".gif";
+	_extention_map["application/pdf"] = ".pdf";
+	_extention_map["application/zip"] = ".zip";
+	_extention_map["application/javascript"] = ".js";
+	_extention_map["application/json"] = ".json";
+	_extention_map["application/pdf"] = ".pdf";
+	_extention_map["audio/webm"] = ".weba";
+	_extention_map["image/jpeg"] = ".jpeg";
+	_extention_map["image/png"] = ".png";
+	_extention_map["image/webp"] = ".webp";
+	_extention_map["message/http"] = ".http";
+	_extention_map["text/css"] = ".css";
+	_extention_map["video/mp4"]= ".mp4";
+	_extention_map["video/mpeg"] = ".mpeg";
+	_extention_map["application/octet-stream"] = ".bin";
+}
+
+string	response::get_content_type(string extention)
+{
+	for (mapstring::iterator it = _extention_map.begin(); it != _extention_map.end(); it++)
+	{
+		if (it->second == extention)
+			return it->first;	
+	}
+	return "";
+}
+
+string	response::get_extention(string content_type)
+{
+	mapstring::iterator it = _extention_map.find(content_type);
+	if (it != _extention_map.end())
+		return it->second;
+	return "bin";
+}
+
 void	response::reset_values()
 {
 	_initial_line = "";
@@ -43,24 +84,70 @@ string	&response::get_headers()
 	return _headers;
 }
 
-void	response::Create_response(request & request, config & config)
+void	response::unvalid_response(request &request, config &config, string code)
+{
+	fill_initial_line(request.version, code);
+	string errorpage = _server.get_element("error_page");
+	if (code == "301")
+		fill_header("Location", _location.get_element("return"));
+	fill_header("content_type", get_content_type (errorpage.substr(errorpage.find_last_of("."))));
+	_headers += "\r\n";
+
+}
+
+void	response::Create_response(request & request, config & config, string code)
 {
 	_server = config.matchname(request.host);
 	_location = _server.matchlocation(request.uri);
+	if (code != "")
+	{
+		unvalid_response (request, config, code);
+		return;
+	}
 	if (_location.get_real() == -1)
 	{
-		fill_initial_line(request.version, "404");
+		unvalid_response (request, config, "404");
 		return;
 	}
 	if (_location.find_element("return"))
 	{
-		fill_initial_line(request.version, "301");
-		fill_header("Location", _location.get_element("return"));
+		unvalid_response (request, config, "301");
 		return;
 	}
 	if (!_location.is_method_allowed(request.METHOD))
 	{
-		fill_initial_line(request.version, "405");
+		unvalid_response (request, config, "405");
 		return;
 	}
+}
+
+
+struct ValueEquals {
+    ValueEquals(const std::string& value) : m_value(value) {}
+    bool operator()(const std::pair<int, std::string>& p) const {
+        return p.second == m_value;
+    }
+private:
+    std::string m_value;
+};
+
+int main() {
+    std::map<int, std::string> myMap;
+    myMap[1] = "one";
+    myMap[2] = "two";
+    myMap[3] = "three";
+    
+    std::string searchValue = "two";
+    
+    // Find the key associated with the value "two"
+    std::map<int, std::string>::const_iterator it = std::find_if(myMap.begin(), myMap.end(),  ValueEquals(searchValue));
+    
+    // Check if a match was found
+    if (it != myMap.end()) {
+        std::cout << "The key for value " << searchValue << " is " << it->first << std::endl;
+    } else {
+        std::cout << "Value not found" << std::endl;
+    }
+    
+    return 0;
 }
