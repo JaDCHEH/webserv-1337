@@ -355,15 +355,14 @@ Location	Server::matchlocation(string & uri)
 	fake.set_real(-1);
 	const char *c_uri = uri.c_str();
 	DIR *dir = opendir(c_uri);
-
     if (dir) {
         if (uri.back() != '/') {
             uri += "/";
+			closedir(dir);
         }
     } else {
         uri = uri.substr(0, uri.find_last_of("/"));
     }
-	closedir(dir);
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
 		if (strncmp((*i).first.c_str(), uri.c_str(), (*i).first.size()) == 0){
 			if (match < (*i).first.size())

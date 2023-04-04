@@ -93,14 +93,14 @@ void	response::unvalid_response(Request &Request, string code)
 		fill_header("Location", _location.get_element("return"));
 	std::ifstream file(errorpage);
 	file.seekg(0, file.end);
-	fill_header("content_type", get_content_type(errorpage.substr(errorpage.find_last_of("."))));
-	fill_header("content_lenght", std::to_string(file.tellg()));
+	fill_header("Content-Type", get_content_type(errorpage.substr(errorpage.find_last_of("."))));
+	fill_header("Content-Length", std::to_string(file.tellg()));
 	file.seekg(0, file.beg);
 	string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	file.close();
 	_headers += "\r\n";
-	Request._buffer = _initial_line + _headers + file_content;
-	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
+	Request._buffer = _initial_line + _headers + file_content + "\r\n";
+	std::cout << send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0) << " " << Request._buffer.size() << std::endl;
 }
 
 void	response::Create_response(Request & Request, config & config, string code)

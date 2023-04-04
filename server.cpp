@@ -6,7 +6,7 @@
 /*   By: cjad <cjad@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/26 14:57:56 by zihirri           #+#    #+#             */
-/*   Updated: 2023/04/04 16:33:41 by cjad             ###   ########.fr       */
+/*   Updated: 2023/04/04 20:43:29 by cjad             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,8 +85,9 @@ int main(int ac, char **av)
         std::cout << "Failed to create socket. errno: " << errno << std::endl;
         exit(EXIT_FAILURE);
     }
-
+	int sss=1;
     std::cout << "Binding socket to local address..." << std::endl;
+	setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &sss, sizeof(int));
     if (bind(socket_listen, bind_address->ai_addr, bind_address->ai_addrlen))
     {
         std::cout << "Failed to bind to port: " << PORT << " " << strerror(errno) << std::endl;
@@ -167,6 +168,7 @@ int main(int ac, char **av)
                         server[i]._location = server[i]._server.matchlocation(server[i].path);
                         checkRequestBodySize(server[i].body, std::stoul(server[i]._server.get_element("max_body_size")));
                         response.Create_response(server[i], conf, "");
+						std::cout << "done sending" << std::endl;
                     }
                 }
             }
