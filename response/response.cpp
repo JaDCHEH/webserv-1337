@@ -58,10 +58,11 @@ string	response::get_extention(string content_type)
 
 void	response::reset_values()
 {
-	_initial_line = "";
-	_headers = "";
-	_status_code = -1;
+	_initial_line.clear();
+	_headers.clear();
+	_body.clear();
 	_codes();
+	_extentions();
 }
 
 void	response::fill_initial_line(const string version, const string _code)
@@ -84,74 +85,35 @@ string	&response::get_headers()
 	return _headers;
 }
 
-void	response::unvalid_response(request &request, config &config, string code)
+void	response::unvalid_response(Request &Request, string code)
 {
-	fill_initial_line(request.version, code);
+	fill_initial_line(Request.http_version, code);
 	string errorpage = _server.get_element("error_page");
 	if (code == "301")
 		fill_header("Location", _location.get_element("return"));
-	FILE *file = fopen(errorpage.c_str(), "rb");
-	fseek(file, 0, SEEK_END);
-	fill_header("content_type", get_content_type (errorpage.substr(errorpage.find_last_of("."))));
-	fill_header("content_lenght", std::to_string(ftell(file)));
-	fclose(file);
+	std::ifstream file(errorpage);
+	file.seekg(0, file.end);
+	fill_header("content_type", get_content_type(errorpage.substr(errorpage.find_last_of("."))));
+	fill_header("content_lenght", std::to_string(file.tellg()));
+	file.seekg(0, file.beg);
+	string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	file.close();
 	_headers += "\r\n";
-	
+	Request._buffer = _initial_line + _headers + file_content;
+	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
 }
 
-void	response::Create_response(request & request, config & config, string code)
+void	response::Create_response(Request & Request, config & config, string code)
 {
-	_server = config.matchname(request.host);
-	_location = _server.matchlocation(request.uri);
+	reset_values();
+	_server = config.matchname(Request.host);
+	_location = _server.matchlocation(Request.path);
 	if (code != "")
-	{
-		unvalid_response (request, config, code);
-		return;
-	}
-	if (_location.get_real() == -1)
-	{
-		unvalid_response (request, config, "404");
-		return;
-	}
-	if (_location.find_element("return"))
-	{
-		unvalid_response (request, config, "301");
-		return;
-	}
-	if (!_location.is_method_allowed(request.METHOD))
-	{
-		unvalid_response (request, config, "405");
-		return;
-	}
-}
-
-
-struct ValueEquals {
-    ValueEquals(const std::string& value) : m_value(value) {}
-    bool operator()(const std::pair<int, std::string>& p) const {
-        return p.second == m_value;
-    }
-private:
-    std::string m_value;
-};
-
-int main() {
-    std::map<int, std::string> myMap;
-    myMap[1] = "one";
-    myMap[2] = "two";
-    myMap[3] = "three";
-    
-    std::string searchValue = "two";
-    
-    // Find the key associated with the value "two"
-    std::map<int, std::string>::const_iterator it = std::find_if(myMap.begin(), myMap.end(),  ValueEquals(searchValue));
-    
-    // Check if a match was found
-    if (it != myMap.end()) {
-        std::cout << "The key for value " << searchValue << " is " << it->first << std::endl;
-    } else {
-        std::cout << "Value not found" << std::endl;
-    }
-    
-    return 0;
+		unvalid_response (Request, code);
+	else if (_location.get_real() == -1)
+		unvalid_response (Request, "404");
+	else if (_location.find_element("return"))
+		unvalid_response (Request, "301");
+	else if (!_location.is_method_allowed(Request.method))
+		unvalid_response (Request, "405");
 }

@@ -12,7 +12,7 @@ string	get_words(string &line, stringvect& vector)
 	vector.clear();
 	while (it != line.end())
 	{
-		word = "";
+		word.clear();
 		while ((*it == ' ' || *it == '\t') && it != line.end())
 			it++;
 		while ((*it != ' ' && *it != '\t') && it != line.end())
@@ -68,9 +68,9 @@ void	Location::check_validity()
 {
 	for (stringvect::iterator it = _allowed_methods.begin(); it != _allowed_methods.end(); it++)
 	{
-		if ((*it) != "GET" || (*it) != "DELETE" || (*it) != "POST")
+		if ((*it) != "GET" && (*it) != "DELETE" && (*it) != "POST")
 		{
-			std::cerr << "Unvalid method in the configuration file" << std::endl;
+			std::cerr << (*it) << " Unvalid method in the configuration file" << std::endl;
 			exit(1);
 		}
 	}
@@ -113,7 +113,7 @@ void	Location::location_fill(std::ifstream &ifs, string &line)
 			_allowed_methods = vector;
 			allowed = 1;
 		}
-		if (location_elements(word) && vector.size() == 1)
+		else if (location_elements(word) && vector.size() == 1)
 		{
 			if (_elements.find(word) != _elements.end())
 			{
@@ -188,10 +188,10 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 					exit(0);
 				}
 				else{
-					if(vector[1].back() != '/')
-						vector[1] += '/';
+					if(vector[0].back() != '/')
+						vector[0] += '/';
 					templocation.location_fill(ifs, line);
-					_location[vector[1]] = templocation;
+					_location[vector[0]] = templocation;
 				}
 		}
 		else if (word == "}" && vector.size() == 0)
@@ -223,7 +223,7 @@ void	config::conf(string conf)
 	stringvect	vector;
 	Server serv;
 	int error_page = 0;
-	_error_page = "";
+	_error_page.clear();
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
@@ -261,6 +261,7 @@ void	config::conf(string conf)
 		std::cerr <<  "conf file must have at least 1 server block" << std::endl;
 		exit(1);
 	}
+	must_fill();
 }
 
 void Location::must_fill(const string &root)
@@ -277,6 +278,13 @@ void Server::must_fill(const string &error_page)
 		_elements["root"] = "/";
 	if (_elements.find("listen") == _elements.end())
 		_elements["listen"] = "8080";
+	if (_elements.find("max_body_size") == _elements.end())
+		_elements["max_body_size"] = "2000000000";
+	if (!(std::all_of(_elements["max_body_size"].begin(), _elements["max_body_size"].end(), ::isdigit)))
+	{
+		std::cerr << "the body size isn't only digits " << _elements["max_body_size"] << std::endl;
+		exit(1);
+	}
 	if (_elements.find("error_page") == _elements.end())
 		_elements["error_page"] = error_page;
 	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
@@ -340,9 +348,9 @@ Server&	config::matchname(string &servername)
 	return *temp;
 }
 
-Location&	Server::matchlocation(string & uri)
+Location	Server::matchlocation(string & uri)
 {
-	int match = 0;
+	size_t match = 0;
 	Location fake;
 	fake.set_real(-1);
 	const char *c_uri = uri.c_str();

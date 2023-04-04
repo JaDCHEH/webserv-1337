@@ -1,8 +1,8 @@
-#ifndef REQUEST_HPP
-#define REQUEST_HPP
+#ifndef Request_HPP
+#define Request_HPP
 #include "config/config.hpp"
 
-class request
+class Request
 {
 public:
 	string	METHOD;
@@ -10,13 +10,18 @@ public:
 	string	version;
 	string	host;
 	int		_writing_status;
+	int		_socked_fd;
+	int		_header_status;
+	int		_file_status;
+	string	Buffer;
+	
 };
 
-request::request(/* args */)
+Request::Request(/* args */)
 {
 }
 
-request::~request()
+Request::~Request()
 {
 }
 

@@ -46,7 +46,7 @@ public:
 	int			find_element(string key);
 	void		set_element(string key, string &value);
 	string 		get_element(string key);
-	Location	&matchlocation(string &location);
+	Location	matchlocation(string &location);
 	Server&		server_fill(std::ifstream &ifs, string &line);
 	void		must_fill(const string &error_page);
 };
