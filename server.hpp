@@ -33,6 +33,10 @@ class Request {
 		Location	_location;
 		Server		_server;
 		string		_buffer;
+		int			_first;
+		int			_fd;
+		int			_buffer_state;
+		size_t		_file_size;
 		std::string host;
 		std::string body;
 		mapstring headers;

@@ -1,0 +1,2 @@
+the request isn't in a loop so responding to it is basically impossible if the file is too long
+need u to check if the socket is writable so i can keep writing in it

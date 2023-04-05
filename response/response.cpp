@@ -88,9 +88,9 @@ string	&response::get_headers()
 void	response::unvalid_response(Request &Request, string code)
 {
 	fill_initial_line(Request.http_version, code);
-	string errorpage = _server.get_element("error_page");
+	string errorpage = Request._server.get_element("error_page");
 	if (code == "301")
-		fill_header("Location", _location.get_element("return"));
+		fill_header("Location", Request._location.get_element("return"));
 	std::ifstream file(errorpage);
 	file.seekg(0, file.end);
 	fill_header("Content-Type", get_content_type(errorpage.substr(errorpage.find_last_of("."))));
@@ -103,17 +103,89 @@ void	response::unvalid_response(Request &Request, string code)
 	std::cout << send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0) << " " << Request._buffer.size() << std::endl;
 }
 
-void	response::Create_response(Request & Request, config & config, string code)
+void	response::redirection(Request & Request, int flag)
+{
+	fill_initial_line(Request.http_version, "301");
+	if (flag == 0)
+		fill_header("Location", Request._location.get_element("return"));
+	else
+		fill_header("Location", Request.path);
+	fill_header("Content-Type", "text/html");
+	fill_header("Content-Length",0);
+	_headers += "\r\n";
+	Request._buffer = _initial_line + _headers;
+	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
+}
+
+void	response::valid_response(Request & Request, string code, const string &file)
+{
+	fill_initial_line(Request.http_version, code);
+	fill_header("Content-Type", file.substr(file.find_last_of(".")));
+	std::ifstream  file_stream(file);
+	char	buffer[3000];
+	file_stream.seekg(0, file_stream.end);
+	Request._file_size = file_stream.tellg();
+	fill_header("Content-Length", std::to_string(file_stream.tellg()));
+	file_stream.seekg(0, file_stream.beg);
+	file_stream.close();
+	_headers += "\r\n";
+	if (!Request._first)
+	{
+		Request._buffer = _initial_line + _headers;
+		Request._first = 1;
+		Request._fd = open(file.c_str(), O_RDONLY);
+	}
+	if (!Request._buffer_state)
+	{
+		int i = read(Request._fd, buffer, 3000);
+		Request._buffer += buffer;
+		if(!i)
+			close(Request._fd);
+	}
+	size_t a = send(Request.socket,Request._buffer.c_str(), Request._buffer.size(), 0);
+	if (a != Request._buffer.size())
+	{
+		Request._buffer.substr(a);
+		Request._buffer_state = 1;
+	}
+	else
+	{
+		Request._buffer.clear();
+		Request._buffer_state = 0;
+	}
+}
+
+void	response::Get_method(Request & Request)
+{
+	Request.path = Request._location.get_element("root") + Request.path;
+	DIR *dir = opendir(Request.path.c_str());
+	if (dir)
+	{
+		if (Request.path.back() != '/')
+		{
+			Request.path += '/';
+			redirection(Request, 1);
+		}
+		else if (Request._location.get_element("index") != "")
+		{
+			valid_response(Request, "200", Request.path + Request._location.get_element("index"));
+		}
+	}
+}
+
+void	response::Create_response(Request & Request, string code)
 {
 	reset_values();
-	_server = config.matchname(Request.host);
-	_location = _server.matchlocation(Request.path);
 	if (code != "")
 		unvalid_response (Request, code);
-	else if (_location.get_real() == -1)
+	else if (Request._location.get_real() == -1)
 		unvalid_response (Request, "404");
-	else if (_location.find_element("return"))
-		unvalid_response (Request, "301");
-	else if (!_location.is_method_allowed(Request.method))
+	else if (Request._location.find_element("return"))
+		redirection (Request, 0);
+	else if (!Request._location.is_method_allowed(Request.method))
 		unvalid_response (Request, "405");
+	else if (Request.method == "GET")
+	{
+		Get_method(Request);
+	}
 }

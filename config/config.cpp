@@ -353,25 +353,17 @@ Location	Server::matchlocation(string & uri)
 	size_t match = 0;
 	Location fake;
 	fake.set_real(-1);
-	const char *c_uri = uri.c_str();
-	DIR *dir = opendir(c_uri);
-    if (dir) {
-        if (uri.back() != '/') {
-            uri += "/";
-			closedir(dir);
-        }
-    } else {
-        uri = uri.substr(0, uri.find_last_of("/"));
-    }
+	string urii =  uri;
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
-		if (strncmp((*i).first.c_str(), uri.c_str(), (*i).first.size()) == 0){
-			if (match < (*i).first.size())
-				match = (*i).first.size();
+		if (strncmp(i->first.c_str(), urii.c_str(), i->first.size()) == 0){
+			if (match < i->first.size())
+				match = i->first.size();
 		}
+		std::cout << uri << "  " << i->first << " " << match << std::endl;
 	}
-	for (locationmap::iterator i2 = _location.begin(); i2 != _location.end(); i2++){
-		if ((*i2).first.size() == match)
-			return (*i2).second;
+	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
+		if (i->first.size() == match)
+			return i->second;
 	}
 	return fake;
 }
