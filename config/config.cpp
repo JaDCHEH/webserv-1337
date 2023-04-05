@@ -156,6 +156,13 @@ int serv_elements(string element)
 	return 0;
 }
 
+void	Location::reset()
+{
+	set_real(1);
+	_allowed_methods.clear();
+	_elements.clear();
+}
+
 Server&	Server::server_fill(std::ifstream &ifs, string &line)
 {
 	string word;
@@ -170,6 +177,7 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 	}
 	while (std::getline(ifs, line))
 	{
+		templocation.reset();
 		word = get_words(line, vector);
 		if (serv_elements(word) && vector.size() == 1)
 		{
@@ -359,7 +367,6 @@ Location	Server::matchlocation(string & uri)
 			if (match < i->first.size())
 				match = i->first.size();
 		}
-		std::cout << uri << "  " << i->first << " " << match << std::endl;
 	}
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
 		if (i->first.size() == match)

@@ -29,6 +29,7 @@ public:
 	int			get_real();
 	int			find_element(string element);
 	string 		get_element(string key);
+	void		reset();
 	int			is_method_allowed(string method);
 	void		check_validity();
 	void		must_fill(const string &root);

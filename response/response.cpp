@@ -111,7 +111,7 @@ void	response::redirection(Request & Request, int flag)
 	else
 		fill_header("Location", Request.path);
 	fill_header("Content-Type", "text/html");
-	fill_header("Content-Length",0);
+	fill_header("Content-Length","0");
 	_headers += "\r\n";
 	Request._buffer = _initial_line + _headers;
 	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
