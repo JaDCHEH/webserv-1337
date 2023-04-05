@@ -120,11 +120,12 @@ void	response::redirection(Request & Request, int flag)
 void	response::valid_response(Request & Request, string code, const string &file)
 {
 	fill_initial_line(Request.http_version, code);
-	fill_header("Content-Type", file.substr(file.find_last_of(".")));
+	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
 	std::ifstream  file_stream(file);
-	char	buffer[3000];
+	string	buffer;
 	file_stream.seekg(0, file_stream.end);
 	Request._file_size = file_stream.tellg();
+	buffer.resize(Request._file_size);
 	fill_header("Content-Length", std::to_string(file_stream.tellg()));
 	file_stream.seekg(0, file_stream.beg);
 	file_stream.close();
@@ -137,12 +138,13 @@ void	response::valid_response(Request & Request, string code, const string &file
 	}
 	if (!Request._buffer_state)
 	{
-		int i = read(Request._fd, buffer, 3000);
+		int i = read(Request._fd, &buffer[0], Request._file_size);
 		Request._buffer += buffer;
 		if(!i)
 			close(Request._fd);
 	}
-	size_t a = send(Request.socket,Request._buffer.c_str(), Request._buffer.size(), 0);
+	size_t a = send(Request.socket,&Request._buffer[0], Request._buffer.size(), 0);
+	std::cout << a << std::endl;
 	if (a != Request._buffer.size())
 	{
 		Request._buffer.substr(a);
