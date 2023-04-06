@@ -363,7 +363,7 @@ Location	Server::matchlocation(string & uri)
 	fake.set_real(-1);
 	string urii =  uri;
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
-		if (strncmp(i->first.c_str(), urii.c_str(), i->first.size()) == 0){
+		if (strncmp(i->first.c_str(), urii.c_str(), i->first.size() - 1) == 0){
 			if (match < i->first.size())
 				match = i->first.size();
 		}

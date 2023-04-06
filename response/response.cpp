@@ -193,28 +193,28 @@ void	response::auto_index(Request &request, DIR *dir)
 
 void	response::Get_method(Request & Request)
 {
-	Request.path = Request._location.get_element("root") + Request.path;
-	DIR *dir = opendir(Request.path.c_str());
+	string fullpath = Request._location.get_element("root") + Request.path;
+	DIR *dir = opendir(fullpath.c_str());
 	if (dir)
 	{
-		if (Request.path.back() != '/')
+		if (fullpath.back() != '/')
 		{
 			Request.path += '/';
 			redirection(Request, 1);
 		}
 		else if (Request._location.get_element("index") != "")
-			get_file(Request, Request.path + Request._location.get_element("index"));
+			get_file(Request, fullpath + Request._location.get_element("index"));
 		else if (Request._location.get_element("autoindex") == "on")
 			auto_index(Request, dir);
 		closedir(dir);
 	}
 	else 
 	{
-		int fd = open(Request.path.c_str(), O_RDONLY);
+		int fd = open(fullpath.c_str(), O_RDONLY);
 		if (fd >= 0)
 		{
 			close(fd);
-			get_file(Request, Request.path);
+			get_file(Request, fullpath);
 		}
 		else
 			unvalid_response(Request, "404");
