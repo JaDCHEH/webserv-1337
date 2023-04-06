@@ -100,7 +100,7 @@ void	response::unvalid_response(Request &Request, string code)
 	file.close();
 	_headers += "\r\n";
 	Request._buffer = _initial_line + _headers + file_content + "\r\n";
-	std::cout << send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0) << " " << Request._buffer.size() << std::endl;
+	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
 }
 
 void	response::redirection(Request & Request, int flag)
@@ -117,12 +117,17 @@ void	response::redirection(Request & Request, int flag)
 	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
 }
 
-void	response::valid_response(Request & Request, string code, const string &file)
+void	response::get_file(Request & Request, const string &file)
 {
-	fill_initial_line(Request.http_version, code);
-	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
 	std::ifstream  file_stream(file);
+	if (!file_stream)
+	{
+		unvalid_response(Request, "404");
+		return;
+	}
+	fill_initial_line(Request.http_version, "200");
 	string	buffer;
+	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
 	file_stream.seekg(0, file_stream.end);
 	Request._file_size = file_stream.tellg();
 	buffer.resize(Request._file_size);
@@ -157,6 +162,35 @@ void	response::valid_response(Request & Request, string code, const string &file
 	}
 }
 
+void	response::auto_index(Request &request, DIR *dir)
+{
+	struct dirent *ent;
+    std::ostringstream ss;
+    ss << "<!DOCTYPE html>\n";
+    ss << "<html>\n";
+    ss << "<head>\n";
+    ss << "  <title>Index of " << request.path << "</title>\n";
+    ss << "</head>\n";
+    ss << "<body>\n";
+    ss << "  <h1>Index of " << "." << "</h1>\n";
+    ss << "  <ul>\n";
+    while ((ent = readdir(dir)) != NULL) {
+        std::string filename(ent->d_name);
+        if (filename != "." && filename != "..") {
+            ss << "    <li><a href=\"" << filename << "\">" << filename << "</a></li>\n";
+        }
+	}
+    ss << "  </ul>\n";
+    ss << "</body>\n";
+    ss << "</html>\n";
+	fill_initial_line(request.http_version, "200");
+	fill_header("Content-Type", "text/html");
+	fill_header("Content-Length", std::to_string(ss.str().length()));
+	_headers += "\r\n";
+	request._buffer = _initial_line + _headers + ss.str() + "\r\n";
+	send(request.socket, request._buffer.c_str(), request._buffer.size(), 0);
+}
+
 void	response::Get_method(Request & Request)
 {
 	Request.path = Request._location.get_element("root") + Request.path;
@@ -169,9 +203,21 @@ void	response::Get_method(Request & Request)
 			redirection(Request, 1);
 		}
 		else if (Request._location.get_element("index") != "")
+			get_file(Request, Request.path + Request._location.get_element("index"));
+		else if (Request._location.get_element("autoindex") == "on")
+			auto_index(Request, dir);
+		closedir(dir);
+	}
+	else 
+	{
+		int fd = open(Request.path.c_str(), O_RDONLY);
+		if (fd >= 0)
 		{
-			valid_response(Request, "200", Request.path + Request._location.get_element("index"));
+			close(fd);
+			get_file(Request, Request.path);
 		}
+		else
+			unvalid_response(Request, "404");
 	}
 }
 

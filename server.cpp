@@ -156,7 +156,7 @@ int main(int ac, char **av)
 					if (bytes_received < 1)
 					{
 						std::cout << "Disconnected errno : " << errno << std::endl;
-						exit(EXIT_FAILURE);
+						//exit(EXIT_FAILURE);
 					}
 					else
 					{
@@ -175,7 +175,6 @@ int main(int ac, char **av)
 						else 
 							response.Create_response(server[i], "");
 					}
-					response.Create_response(server[i], "");
 				}
 			}
 		}
