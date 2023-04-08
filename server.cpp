@@ -60,6 +60,7 @@ Request parse(char *request)
         // Return the parsed Server object
         server._buffer_state = 0;
         server._first = 0;
+		server._amount_written = 0;
         return server;
 }
 

@@ -85,7 +85,7 @@ string	&response::get_headers()
 	return _headers;
 }
 
-void	response::unvalid_response(Request &Request, string code)
+int	response::unvalid_response(Request &Request, string code)
 {
 	fill_initial_line(Request.http_version, code);
 	string errorpage = Request._server.get_element("error_page");
@@ -101,9 +101,10 @@ void	response::unvalid_response(Request &Request, string code)
 	_headers += "\r\n";
 	Request._buffer = _initial_line + _headers + file_content + "\r\n";
 	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
+	return 0;
 }
 
-void	response::redirection(Request & Request, int flag)
+int	response::redirection(Request & Request, int flag)
 {
 	fill_initial_line(Request.http_version, "301");
 	if (flag == 0)
@@ -115,16 +116,14 @@ void	response::redirection(Request & Request, int flag)
 	_headers += "\r\n";
 	Request._buffer = _initial_line + _headers;
 	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
+	return 0;
 }
 
-void	response::get_file(Request & Request, const string &file)
+int	response::get_file(Request & Request, const string &file)
 {
 	std::ifstream  file_stream(file);
 	if (!file_stream)
-	{
-		unvalid_response(Request, "404");
-		return;
-	}
+		return unvalid_response(Request, "404");
 	fill_initial_line(Request.http_version, "200");
 	string	buffer;
 	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
@@ -140,6 +139,7 @@ void	response::get_file(Request & Request, const string &file)
 		Request._buffer = _initial_line + _headers;
 		Request._first = 1;
 		Request._fd = open(file.c_str(), O_RDONLY);
+		Request._size_to_write = Request._buffer.size() + Request._file_size;
 	}
 	if (!Request._buffer_state)
 	{
@@ -149,9 +149,10 @@ void	response::get_file(Request & Request, const string &file)
 			close(Request._fd);
 	}
 	size_t a = send(Request.socket,&Request._buffer[0], Request._buffer.size(), 0);
+	Request._amount_written += a;
 	if (a != Request._buffer.size())
 	{
-		Request._buffer.substr(a);
+		Request._buffer = Request._buffer.substr(a);
 		Request._buffer_state = 1;
 	}
 	else
@@ -159,10 +160,14 @@ void	response::get_file(Request & Request, const string &file)
 		Request._buffer.clear();
 		Request._buffer_state = 0;
 	}
+	if (Request._amount_written == Request._size_to_write)
+		return 1;
+	return 0;
 }
 
-void	response::auto_index(Request &request, DIR *dir)
+int	response::auto_index(Request &request, string &path)
 {
+	DIR *dir  = opendir(path.c_str());
 	struct dirent *ent;
     std::ostringstream ss;
     ss << "<!DOCTYPE html>\n";
@@ -171,7 +176,7 @@ void	response::auto_index(Request &request, DIR *dir)
     ss << "  <title>Index of " << request.path << "</title>\n";
     ss << "</head>\n";
     ss << "<body>\n";
-    ss << "  <h1>Index of " << "." << "</h1>\n";
+    ss << "  <h1>Index of " << request.path << "</h1>\n";
     ss << "  <ul>\n";
     while ((ent = readdir(dir)) != NULL) {
         std::string filename(ent->d_name);
@@ -188,53 +193,51 @@ void	response::auto_index(Request &request, DIR *dir)
 	_headers += "\r\n";
 	request._buffer = _initial_line + _headers + ss.str() + "\r\n";
 	send(request.socket, request._buffer.c_str(), request._buffer.size(), 0);
+	closedir(dir);
+	return 0;
 }
 
-void	response::Get_method(Request & Request)
+int	response::Get_method(Request & Request)
 {
 	string fullpath = Request._location.get_element("root") + Request.path;
 	DIR *dir = opendir(fullpath.c_str());
 	if (dir)
 	{
+		closedir(dir);
 		if (fullpath.back() != '/')
 		{
 			Request.path += '/';
-			redirection(Request, 1);
+			return redirection(Request, 1);
 		}
 		else if (Request._location.get_element("index") != "")
-			get_file(Request, fullpath + Request._location.get_element("index"));
+			return get_file(Request, fullpath + Request._location.get_element("index"));
 		else if (Request._location.get_element("autoindex") == "on")
-			auto_index(Request, dir);
+			return auto_index(Request, fullpath);
 		else if (Request._location.get_element("autoindex") == "off")
-			unvalid_response(Request, "403");
-		closedir(dir);
+			return unvalid_response(Request, "403");
 	}
-	else 
+	int fd = open(fullpath.c_str(), O_RDONLY);
+	if (fd >= 0)
 	{
-		int fd = open(fullpath.c_str(), O_RDONLY);
-		if (fd >= 0)
-		{
-			close(fd);
-			get_file(Request, fullpath);
-		}
-		else
-			unvalid_response(Request, "404");
+		close(fd);
+		return get_file(Request, fullpath);
 	}
+	else
+		return unvalid_response(Request, "404");
 }
 
-void	response::Create_response(Request & Request, string code)
+int	response::Create_response(Request & Request, string code)
 {
 	reset_values();
 	if (code != "")
-		unvalid_response (Request, code);
+		return unvalid_response (Request, code);
 	else if (Request._location.get_real() == -1)
-		unvalid_response (Request, "404");
+		return unvalid_response (Request, "404");
 	else if (Request._location.find_element("return"))
-		redirection (Request, 0);
+		return redirection (Request, 0);
 	else if (!Request._location.is_method_allowed(Request.method))
-		unvalid_response (Request, "405");
+		return unvalid_response (Request, "405");
 	else if (Request.method == "GET")
-	{
-		Get_method(Request);
-	}
+		return Get_method(Request);
+	return 0;
 }

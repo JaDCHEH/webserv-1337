@@ -35,6 +35,8 @@ class Request {
 		Server		_server;
 		string		_buffer;
 		int			_first;
+		size_t		_size_to_write;
+		size_t		_amount_written;
 		int			_fd;
 		int			_buffer_state;
 		size_t		_file_size;
