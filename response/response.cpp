@@ -130,7 +130,7 @@ void	response::get_file(Request & Request, const string &file)
 	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
 	file_stream.seekg(0, file_stream.end);
 	Request._file_size = file_stream.tellg();
-	buffer.resize(Request._file_size);
+	buffer.resize(2000);
 	fill_header("Content-Length", std::to_string(file_stream.tellg()));
 	file_stream.seekg(0, file_stream.beg);
 	file_stream.close();
@@ -143,13 +143,12 @@ void	response::get_file(Request & Request, const string &file)
 	}
 	if (!Request._buffer_state)
 	{
-		int i = read(Request._fd, &buffer[0], Request._file_size);
+		int i = read(Request._fd, &buffer[0], 2000);
 		Request._buffer += buffer;
 		if(!i)
 			close(Request._fd);
 	}
 	size_t a = send(Request.socket,&Request._buffer[0], Request._buffer.size(), 0);
-	std::cout << a << std::endl;
 	if (a != Request._buffer.size())
 	{
 		Request._buffer.substr(a);

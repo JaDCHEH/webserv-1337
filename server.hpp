@@ -6,6 +6,7 @@
 #define CLOSESOCKET(s) close(s)
 #define SOCKET int
 #define GETSOCKETERRNO() (errno)
+#define MAX_REQUEST_SIZE 2047
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -41,6 +42,17 @@ class Request {
 		std::string body;
 		mapstring headers;
 		int socket;
+};
+
+struct Client
+{
+		socklen_t address_length;
+		struct sockaddr_storage address;
+		int socket;
+		char request[MAX_REQUEST_SIZE + 1];
+		int received;
+		bool isSending;
+		std::string response;
 };
 
 #endif
