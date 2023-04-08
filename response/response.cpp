@@ -206,6 +206,8 @@ void	response::Get_method(Request & Request)
 			get_file(Request, fullpath + Request._location.get_element("index"));
 		else if (Request._location.get_element("autoindex") == "on")
 			auto_index(Request, dir);
+		else if (Request._location.get_element("autoindex") == "off")
+			unvalid_response(Request, "403");
 		closedir(dir);
 	}
 	else 
