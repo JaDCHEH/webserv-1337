@@ -54,7 +54,7 @@ void parse(Request &server, string request)
 		server.headers[header_key] = header_value;
 	}
 	// Extract the body of the Request
-	server.body = request.substr(request.find("\r\n\r\n") + 4);					// Set the body to everything after the headers
+	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	// Return the parsed Server object
 	server._buffer_state = 0;
 	server._first = 0;
@@ -110,6 +110,7 @@ int main(int ac, char **av)
 	std::vector<Client> clients;
 	while (1)
 	{
+		signal(SIGPIPE, SIG_IGN);
 		FD_ZERO(&reads);
 		FD_ZERO(&writes);
 		FD_SET(socket_listen, &reads);
@@ -166,29 +167,28 @@ int main(int ac, char **av)
 				int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
 				if (bytes_received < 1)
 				{
-					if (errno == EWOULDBLOCK || errno == EAGAIN)
-						continue;
-					else
-					{
-						std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
-						continue;
-					}
+					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+					server.erase(clients[i].socket);
+					FD_CLR(clients[i].socket, &reads);
+					FD_CLR(clients[i].socket, &writes);
+					CLOSESOCKET(clients[i].socket);
+					clients.erase(clients.begin() + i);
+					continue;
 				}
 				server[clients[i].socket]._req += buffer;
 				if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 				{
-					parse(server[clients[i].socket] ,buffer);
+					parse(server[clients[i].socket], buffer);
 					server[clients[i].socket].socket = clients[i].socket;
 					server[clients[i].socket]._server = conf.matchname(server[clients[i].socket].host);
 					server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
 					clients[i].isSending = false;
-					continue;
 				}
 			}
 			else if (FD_ISSET(clients[i].socket, &writes))
 			{
 				int status;
-				status = 1;
+
 				if (isValidRequestURI(server[clients[i].socket].path))
 					status = response.Create_response(server[clients[i].socket], "400");
 				else if (checkUriLength(server[clients[i].socket].path))
@@ -199,6 +199,7 @@ int main(int ac, char **av)
 					status = response.Create_response(server[clients[i].socket], "");
 				if (status == 0)
 				{
+					std::cout << "Been here again\n";
 					server.erase(clients[i].socket);
 					FD_CLR(clients[i].socket, &writes);
 					CLOSESOCKET(clients[i].socket);

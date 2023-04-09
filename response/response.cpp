@@ -134,21 +134,29 @@ int	response::get_file(Request & Request, const string &file)
 	file_stream.seekg(0, file_stream.beg);
 	file_stream.close();
 	_headers += "\r\n";
+	
+	int i = 0;
+	int j = 0;
 	if (!Request._first)
 	{
 		Request._buffer = _initial_line + _headers;
 		Request._first = 1;
 		Request._fd = open(file.c_str(), O_RDONLY);
 		Request._size_to_write = Request._buffer.size() + Request._file_size;
+		i = Request._buffer.size();
 	}
 	if (!Request._buffer_state)
 	{
-		int i = read(Request._fd, &buffer[0], 2000);
+		j = read(Request._fd, &buffer[0], 2000);
 		Request._buffer += buffer;
-		if(!i)
+		i += j;
+		if(!j)
 			close(Request._fd);
 	}
-	size_t a = send(Request.socket,&Request._buffer[0], Request._buffer.size(), 0);
+	size_t a;
+	a = send(Request.socket,&Request._buffer[0], i, 0);
+	if (a <= 0)
+		return 0;
 	Request._amount_written += a;
 	if (a != Request._buffer.size())
 	{
