@@ -39,7 +39,7 @@ int checkRequestBodySize(const std::string &body, size_t max_allowed)
 	return (0);
 }
 
-void parse(Request server, string request)
+void parse(Request &server, string request)
 {
 	// Convert the Request char array to an input string stream
 	std::istringstream iss(request);
@@ -129,7 +129,6 @@ int main(int ac, char **av)
 					  << " " << strerror(errno) << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		// SOCKET i;
 
 		if (FD_ISSET(socket_listen, &reads))
 		{
@@ -162,12 +161,19 @@ int main(int ac, char **av)
 			if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 			{
 				std::cout << "Been here" << std::endl;
-
 				string buffer;
 				buffer.resize(2000);
 				int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
 				if (bytes_received < 1)
-					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+				{
+					if (errno == EWOULDBLOCK || errno == EAGAIN)
+						continue;
+					else
+					{
+						std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+						continue;
+					}
+				}
 				server[clients[i].socket]._req += buffer;
 				if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 				{
@@ -176,6 +182,7 @@ int main(int ac, char **av)
 					server[clients[i].socket]._server = conf.matchname(server[clients[i].socket].host);
 					server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
 					clients[i].isSending = false;
+					continue;
 				}
 			}
 			else if (FD_ISSET(clients[i].socket, &writes))
