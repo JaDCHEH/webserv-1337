@@ -1,7 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#define PORT "8081"
+#define PORT "8080"
 #define ISVALIDSOCKET(s) ((s) >= 0)
 #define CLOSESOCKET(s) close(s)
 #define SOCKET int
@@ -30,6 +30,7 @@ class Request {
 	public :
 		std::string	method;
 		std::string	path;
+		string		_req;
 		std::string	http_version;
 		Location	_location;
 		Server		_server;

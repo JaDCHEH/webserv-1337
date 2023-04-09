@@ -161,8 +161,8 @@ int	response::get_file(Request & Request, const string &file)
 		Request._buffer_state = 0;
 	}
 	if (Request._amount_written == Request._size_to_write)
-		return 1;
-	return 0;
+		return 0;
+	return 1;
 }
 
 int	response::auto_index(Request &request, string &path)
