@@ -153,12 +153,12 @@ int	response::get_file(Request & Request, const string &file)
 		if(!j)
 			close(Request._fd);
 	}
-	size_t a;
+	int a;
 	a = send(Request.socket,&Request._buffer[0], i, 0);
-	if (a <= 0)
+	if (a < 0)
 		return 0;
 	Request._amount_written += a;
-	if (a != Request._buffer.size())
+	if (a != (int)Request._buffer.size())
 	{
 		Request._buffer = Request._buffer.substr(a);
 		Request._buffer_state = 1;
