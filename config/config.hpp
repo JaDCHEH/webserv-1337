@@ -43,11 +43,13 @@ class Server
 {
 private:
 	mapstring	_elements;
+	mapstring	_error_page;
 	locationmap	_location;
 public:
 	int			find_element(string key);
 	void		set_element(string key, string &value);
 	string 		get_element(string key);
+	string		get_error_page(string code);
 	Location	matchlocation(string &location);
 	Server&		server_fill(std::ifstream &ifs, string &line);
 	void		must_fill();
@@ -58,7 +60,7 @@ typedef std::vector<Server> servervect;
 class config
 {
 private:
-	string		_error_page;
+	stringvect	_ports;
 	servervect	_servers;
 public:
 	void	conf(string conf);

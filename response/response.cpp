@@ -91,14 +91,31 @@ string	&response::get_headers()
 	return _headers;
 }
 
+string file_get(string File)
+{
+	std::ifstream file(File);
+	string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	file.close();
+	return file_content;
+}
+
 int	response::unvalid_response(Request &Request, string code)
 {
+	string error;
 	fill_initial_line(Request.http_version, code);
 	if (code == "301")
 		fill_header("Location", Request._location.get_element("return"));
 	_headers.clear();
-	fill_header("Content-Type", "text/html");
-	string error = error_page_builder(code);
+	if(Request._server.get_error_page(code) == "")
+	{
+		fill_header("Content-Type", "text/html");
+		error = error_page_builder(code);
+	}
+	else
+	{
+		fill_header("Content-Type", get_content_type(Request._server.get_error_page(code).substr(Request._server.get_error_page(code).find_last_of("."))));
+		error = file_get(Request._server.get_error_page(code));
+	}
 	fill_header("Content-Length", std::to_string(error.size()));
 	_headers += "\r\n";
 	Request._buffer = _initial_line + _headers + error;
@@ -237,6 +254,29 @@ int	response::Get_method(Request & Request)
 		return unvalid_response(Request, "404");
 }
 
+int	response::Delete_method(Request &Request)
+{
+	string fullpath = Request._location.get_element("root") + Request.path;
+	DIR *dir = opendir(fullpath.c_str());
+	if (dir)
+	{
+		closedir(dir);
+		if (fullpath.back() != '/')
+		{
+			Request.path += '/';
+			return redirection(Request, 1);
+		}
+	}
+	int fd = open(fullpath.c_str(), O_RDONLY);
+	if (fd >= 0)
+	{
+		close(fd);
+		return 0;
+	}
+	else
+		return unvalid_response(Request, "409");
+}
+
 int	response::Create_response(Request & Request, string code)
 {
 	reset_values();
@@ -250,5 +290,7 @@ int	response::Create_response(Request & Request, string code)
 		return unvalid_response (Request, "405");
 	else if (Request.method == "GET")
 		return Get_method(Request);
+	else if (Request.method == "DELETE")
+		return Delete_method(Request);
 	return 0;
 }

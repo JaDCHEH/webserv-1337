@@ -33,6 +33,7 @@ public:
 	string	get_extention(string content_type);
 	void	_extentions();
 	int		Get_method(Request & Request);
+	int 	Delete_method(Request &Request);
 	int		Create_response(Request & Request, string code);
 };
 
