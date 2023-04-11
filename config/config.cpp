@@ -143,7 +143,6 @@ int serv_elements(string element)
 	std::map<string, string> serv_ele;
 
 	serv_ele["index"] = "";
-	serv_ele["error_page"] = "";
 	serv_ele["bodysize"] = "";
 	serv_ele["root"] = "";
 	serv_ele["servername"] = "";
@@ -230,22 +229,10 @@ void	config::conf(string conf)
 	string word;
 	stringvect	vector;
 	Server serv;
-	int error_page = 0;
-	_error_page.clear();
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
-		if (word == "error_page")
-		{
-			if (vector.size() != 1 || error_page == 1)
-			{
-				std::cerr << "arguments of error page are invalid" << std::endl;
-				exit(0);
-			}
-			_error_page = vector[0];
-			error_page = 1;
-		}
-		else if (word == "server")
+		if (word == "server")
 		{
 			if (word == "server")
 			{
@@ -280,7 +267,7 @@ void Location::must_fill(const string &root)
 		_elements["auto_index"] = "off";
 }
 
-void Server::must_fill(const string &error_page)
+void Server::must_fill()
 {
 	if (_elements.find("root") == _elements.end())
 		_elements["root"] = "/";
@@ -293,30 +280,14 @@ void Server::must_fill(const string &error_page)
 		std::cerr << "the body size isn't only digits " << _elements["max_body_size"] << std::endl;
 		exit(1);
 	}
-	if (_elements.find("error_page") == _elements.end())
-		_elements["error_page"] = error_page;
 	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
 		it->second.must_fill(_elements["root"]);
-	std::ifstream ifs(_elements["error_page"]);
-	if (!ifs)
-	{
-		std::cerr << "the error page in the conf file doesn't exist" << std::endl;
-		exit(1);
-	}
 }
 
 void config::must_fill()
 {
-	if (_error_page == "")
-		_error_page = "database/Defaulterror.html";
 	for (servervect::iterator it = _servers.begin(); it != _servers.end(); it++)
-		it->must_fill(_error_page);
-	std::ifstream ifs(_error_page);
-	if (!ifs)
-	{
-		std::cerr << "the error page in the conf file doesn't exist" << std::endl;
-		exit(1);
-	}
+		it->must_fill();
 }
 
 int	Server::find_element(string key)

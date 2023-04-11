@@ -50,7 +50,7 @@ public:
 	string 		get_element(string key);
 	Location	matchlocation(string &location);
 	Server&		server_fill(std::ifstream &ifs, string &line);
-	void		must_fill(const string &error_page);
+	void		must_fill();
 };
 
 typedef std::vector<Server> servervect;

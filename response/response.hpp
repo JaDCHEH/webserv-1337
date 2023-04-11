@@ -22,6 +22,7 @@ public:
 	string	&get_initial_line();
 	string	&get_headers();
 	void	fill_header(const string header, const string value);
+	string	error_page_builder(string code);
 	void	reset_values();
 	void	_codes();
 	int		get_file(Request & request, const string &file);

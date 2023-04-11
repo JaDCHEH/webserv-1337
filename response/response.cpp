@@ -38,6 +38,12 @@ void	response::_extentions()
 	_extention_map["application/octet-stream"] = ".bin";
 }
 
+string	response::error_page_builder(string code)
+{
+	string page= "<!DOCTYPE html>\n<html>\n  <head>\n    <title>" + code + " - " + _code_map[code] + "</title>\n  </head>\n  <body>\n    <h1>" + code + " - " + _code_map[code] + "</h1>\n  </body>\n</html>";
+	return page;
+}
+
 string	response::get_content_type(string extention)
 {
 	for (mapstring::iterator it = _extention_map.begin(); it != _extention_map.end(); it++)
@@ -88,18 +94,14 @@ string	&response::get_headers()
 int	response::unvalid_response(Request &Request, string code)
 {
 	fill_initial_line(Request.http_version, code);
-	string errorpage = Request._server.get_element("error_page");
 	if (code == "301")
 		fill_header("Location", Request._location.get_element("return"));
-	std::ifstream file(errorpage);
-	file.seekg(0, file.end);
-	fill_header("Content-Type", get_content_type(errorpage.substr(errorpage.find_last_of("."))));
-	fill_header("Content-Length", std::to_string(file.tellg()));
-	file.seekg(0, file.beg);
-	string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	file.close();
+	_headers.clear();
+	fill_header("Content-Type", "text/html");
+	string error = error_page_builder(code);
+	fill_header("Content-Length", std::to_string(error.size()));
 	_headers += "\r\n";
-	Request._buffer = _initial_line + _headers + file_content + "\r\n";
+	Request._buffer = _initial_line + _headers + error;
 	send(Request.socket, Request._buffer.c_str(), Request._buffer.size(), 0);
 	return 0;
 }
@@ -134,7 +136,6 @@ int	response::get_file(Request & Request, const string &file)
 	file_stream.seekg(0, file_stream.beg);
 	file_stream.close();
 	_headers += "\r\n";
-	
 	int i = 0;
 	int j = 0;
 	if (!Request._first)
@@ -148,6 +149,8 @@ int	response::get_file(Request & Request, const string &file)
 	if (!Request._buffer_state)
 	{
 		j = read(Request._fd, &buffer[0], 2000);
+		if (j < 0)
+			return unvalid_response(Request, "404");
 		Request._buffer += buffer;
 		i += j;
 		if(!j)
