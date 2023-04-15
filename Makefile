@@ -4,7 +4,7 @@ CC = @c++
 
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-CPP_FILES = server.cpp config/config.cpp response/response.cpp
+CPP_FILES = server.cpp config/config.cpp response/response.cpp response/getmethod.cpp response/deletemethod.cpp
 
 all : $(NAME)
 
