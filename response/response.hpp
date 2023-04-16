@@ -2,7 +2,6 @@
 #define RESPONSE_HPP
 
 #include "../config/config.hpp"
-#include "../Server.hpp"
 
 class response
 {

@@ -30,8 +30,7 @@ typedef	std::string	string;
 typedef	std::vector<string> stringvect;
 typedef	std::map<string, stringvect>	mapvect;
 typedef	std::map<string, string>	mapstring;
-typedef std::vector<Location> locationvect;
-typedef std::map<string, Location> locationmap;
+
 
 class Location {
 	private:
@@ -50,5 +49,8 @@ class Location {
 		void		check_validity();
 		void		must_fill(const string &root);
 };
+typedef std::vector<Location> locationvect;
+typedef std::map<string, Location> locationmap;
+string	get_words(string &line, stringvect& vector);
 
 #endif
