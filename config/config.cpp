@@ -29,6 +29,7 @@ void	config::conf(string conf)
 	while (std::getline(ifs, line))
 	{
 		word = get_words(line, vector);
+		serv.reset();
 		if (word == "server")
 		{
 			if (word == "server")
@@ -55,16 +56,6 @@ void	config::conf(string conf)
 	}
 	must_fill();
 }
-
-void Location::must_fill(const string &root)
-{
-	if (_elements.find("root") == _elements.end())
-		_elements["root"] = root;
-	if (_elements.find("auto_index") == _elements.end())
-		_elements["auto_index"] = "off";
-}
-
-
 
 void config::must_fill()
 {

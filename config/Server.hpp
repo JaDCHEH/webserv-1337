@@ -32,6 +32,7 @@ class Server
 		response *res;
 		std::vector<Client> clients;
 	public:
+		void		reset();
 		int			find_element(string key);
 		void		set_element(string key, string &value);
 		string 		get_element(string key);
@@ -39,7 +40,7 @@ class Server
 		Location	matchlocation(string &location);
 		void		setting_PORT();
 		void		recieve_cnx();
-		Server&		server_fill(std::ifstream &ifs, string &line);
+		Server		server_fill(std::ifstream &ifs, string &line);
 		void		must_fill();
 };
 

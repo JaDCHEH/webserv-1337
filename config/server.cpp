@@ -210,7 +210,7 @@ void	Server::recieve_cnx()
 	}
 }
 
-Server&	Server::server_fill(std::ifstream &ifs, string &line)
+Server	Server::server_fill(std::ifstream &ifs, string &line)
 {
 	string word;
 	stringvect vector;
@@ -245,10 +245,11 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 		{
 			if (_elements.find(word) != _elements.end())
 			{
-				std::cerr << word << " is already presented in this block" << std::endl;
+				std::cerr << word << " is already presented in this block " << vector[0] << std::endl;
 				exit(0);
 			}
 			_elements[word] = vector[0];
+
 		}
 		else if (word == "location")
 		{
@@ -278,6 +279,13 @@ Server&	Server::server_fill(std::ifstream &ifs, string &line)
 		exit(0);
 	}
 	return *this;
+}
+
+void Server::reset()
+{
+	_elements.clear();
+	_error_page.clear();
+	_location.clear();
 }
 
 void Server::must_fill()

@@ -84,6 +84,14 @@ int		Location::get_real()
 	return _real;
 }
 
+void Location::must_fill(const string &root)
+{
+	if (_elements.find("root") == _elements.end())
+		_elements["root"] = root;
+	if (_elements.find("auto_index") == _elements.end())
+		_elements["auto_index"] = "off";
+}
+
 void	Location::location_fill(std::ifstream &ifs, string &line)
 {
 	string word;
