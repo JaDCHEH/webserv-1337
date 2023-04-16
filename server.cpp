@@ -10,7 +10,7 @@
 /*																			*/
 /* ************************************************************************** */
 
-#include "server.hpp"
+#include "request.hpp"
 #include <sstream>
 
 // Checks if the URI contains a non allowed character c_400

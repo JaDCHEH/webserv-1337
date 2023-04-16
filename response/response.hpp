@@ -1,7 +1,8 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include <fcntl.h>
+#include "../config/config.hpp"
+#include "../Server.hpp"
 
 class response
 {
