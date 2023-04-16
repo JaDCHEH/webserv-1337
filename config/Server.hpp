@@ -26,12 +26,12 @@ class Server
 		SOCKET			socket_listen;
 		struct addrinfo hints;
 		struct addrinfo *bind_address;
-		fd_set reads;
-		fd_set writes;
 		std::map<int, Request> server;
 		response *res;
-		std::vector<Client> clients;
 	public:
+		std::vector<Client> clients;
+		static	fd_set reads;
+		static	fd_set writes;
 		void		reset();
 		int			find_element(string key);
 		void		set_element(string key, string &value);
@@ -42,6 +42,7 @@ class Server
 		void		recieve_cnx();
 		Server		server_fill(std::ifstream &ifs, string &line);
 		void		must_fill();
+		int			getSocket();
 };
 
 class Request {

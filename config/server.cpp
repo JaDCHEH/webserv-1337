@@ -1,7 +1,8 @@
 #include "Server.hpp"
 #include "../response/response.hpp"
 
-
+fd_set Server::reads;
+fd_set Server::writes;
 // Checks if the URI contains a non allowed character c_400
 int isValidRequestURI(const std::string &uri)
 {
@@ -113,26 +114,6 @@ void	Server::setting_PORT()
 
 void	Server::recieve_cnx()
 {
-	signal(SIGPIPE, SIG_IGN);
-	FD_ZERO(&reads);
-	FD_ZERO(&writes);
-	FD_SET(socket_listen, &reads);
-	int max_socket = socket_listen;
-	for (size_t i = 0; i < clients.size(); i++)
-	{
-		if (clients[i].isSending == true)
-			FD_SET(clients[i].socket, &reads);
-		else
-			FD_SET(clients[i].socket, &writes);
-		if (clients[i].socket > max_socket)
-			max_socket = clients[i].socket;
-	}
-	if (select(max_socket + 1, &reads, &writes, 0, 0) == -1)
-	{
-		std::cout << "Failed to select. errno: "
-				  << " " << strerror(errno) << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	res = new response;
 	if (FD_ISSET(socket_listen, &reads))
 	{
@@ -339,4 +320,8 @@ Location	Server::matchlocation(string & uri)
 			return i->second;
 	}
 	return fake;
+}
+
+int		Server::getSocket(){
+	return socket_listen;
 }

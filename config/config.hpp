@@ -7,9 +7,10 @@ typedef std::vector<Server> servervect;
 
 class config
 {
-	private:
+	public:
 		stringvect	_ports;
 		servervect	_servers;
+
 	public:
 		void	conf(string conf);
 		Server	&matchname(string &servername);
