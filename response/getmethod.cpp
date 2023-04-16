@@ -19,7 +19,7 @@ int	response::get_file(Request & Request, const string &file)
 {
 	std::ifstream  file_stream(file);
 	if (!file_stream)
-		return unvalid_response(Request, "404");
+		return simple_response(Request, "404");
 	fill_initial_line(Request.http_version, "200");
 	string	buffer;
 	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
@@ -44,7 +44,7 @@ int	response::get_file(Request & Request, const string &file)
 	{
 		j = read(Request._fd, &buffer[0], 2000);
 		if (j < 0)
-			return unvalid_response(Request, "404");
+			return simple_response(Request, "404");
 		Request._buffer += buffer;
 		i += j;
 		if(!j)
@@ -119,7 +119,7 @@ int	response::Get_method(Request & Request)
 		else if (Request._location.get_element("autoindex") == "on")
 			return auto_index(Request, fullpath);
 		else if (Request._location.get_element("autoindex") == "off")
-			return unvalid_response(Request, "403");
+			return simple_response(Request, "403");
 	}
 	int fd = open(fullpath.c_str(), O_RDONLY);
 	if (fd >= 0)
@@ -128,5 +128,5 @@ int	response::Get_method(Request & Request)
 		return get_file(Request, fullpath);
 	}
 	else
-		return unvalid_response(Request, "404");
+		return simple_response(Request, "404");
 }

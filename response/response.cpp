@@ -101,7 +101,7 @@ string file_get(string File)
 	return file_content;
 }
 
-int	response::unvalid_response(Request &Request, string code)
+int	response::simple_response(Request &Request, string code)
 {
 	string error;
 	fill_initial_line(Request.http_version, code);
@@ -131,13 +131,13 @@ int	response::Create_response(Request & Request, string code)
 {
 	reset_values();
 	if (code != "")
-		return unvalid_response (Request, code);
+		return simple_response (Request, code);
 	else if (Request._location.get_real() == -1)
-		return unvalid_response (Request, "404");
+		return simple_response (Request, "404");
 	else if (Request._location.find_element("return"))
 		return redirection (Request, 0);
 	else if (!Request._location.is_method_allowed(Request.method))
-		return unvalid_response (Request, "405");
+		return simple_response (Request, "405");
 	else if (Request.method == "GET")
 		return Get_method(Request);
 	else if (Request.method == "DELETE")

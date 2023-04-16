@@ -171,6 +171,152 @@ string	Server::get_error_page(string code)
 	return it->second;
 }
 
+void	Server::setting_PORT()
+{
+	std::cout << "Configuring local address..." << std::endl;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo(0, get_element("listen").c_str(), &hints, &bind_address);
+
+	std::cout << "Creating socket..." << std::endl;
+	socket_listen = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
+	if (!ISVALIDSOCKET(socket_listen))
+	{
+		std::cout << "Failed to create socket. errno: " << errno << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	int sss = 1;
+	std::cout << "Binding socket to local address..." << std::endl;
+	setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &sss, sizeof(int));
+	if (bind(socket_listen, bind_address->ai_addr, bind_address->ai_addrlen))
+	{
+		std::cout << "Failed to bind to port: " << PORT << " " << strerror(errno) << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	std::cout << "Listening..." << std::endl;
+	if (listen(socket_listen, 10) < 0)
+	{
+		std::cout << "Failed to listen on socket."
+				  << " " << strerror(errno) << std::endl;
+		exit(EXIT_FAILURE);
+	}
+}
+
+void	Server::recieve_cnx()
+{
+	signal(SIGPIPE, SIG_IGN);
+	FD_ZERO(&reads);
+	FD_ZERO(&writes);
+	FD_SET(socket_listen, &reads);
+	int max_socket = socket_listen;
+	for (size_t i = 0; i < clients.size(); i++)
+	{
+		if (clients[i].isSending == true)
+			FD_SET(clients[i].socket, &reads);
+		else
+			FD_SET(clients[i].socket, &writes);
+		if (clients[i].socket > max_socket)
+			max_socket = clients[i].socket;
+	}
+	if (select(max_socket + 1, &reads, &writes, 0, 0) == -1)
+	{
+		std::cout << "Failed to select. errno: "
+				  << " " << strerror(errno) << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	if (FD_ISSET(socket_listen, &reads))
+	{
+		Client client;
+		bzero(&client, sizeof(Client));
+		client.isSending = true;
+		client.address_length = sizeof(client.address);
+		SOCKET socket_client = accept(socket_listen,
+									  (struct sockaddr *)&client.address, &client.address_length);
+		if (!ISVALIDSOCKET(socket_client))
+		{
+			std::cout << "Accept failed errno: "
+					  << " " << strerror(errno) << std::endl;
+		}
+		fcntl(socket_client, F_SETFL, O_NONBLOCK);
+		client.socket = socket_client;
+		clients.push_back(client);
+		FD_SET(socket_client, &reads);
+		char address_buffer[100];
+		getnameinfo((struct sockaddr *)&client.address,
+					client.address_length,
+					address_buffer, sizeof(address_buffer), 0, 0,
+					NI_NUMERICHOST);
+		std::cout << "New connection from: " << address_buffer << std::endl;
+	}
+	for (size_t i = 0; i < clients.size(); i++)
+	{
+		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
+		{
+			std::cout << "Been here" << std::endl;
+			string buffer;
+			buffer.resize(2000);
+			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
+			if (bytes_received < 1)
+			{
+				std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+				server.erase(clients[i].socket);
+				FD_CLR(clients[i].socket, &reads);
+				FD_CLR(clients[i].socket, &writes);
+				CLOSESOCKET(clients[i].socket);
+				clients.erase(clients.begin() + i);
+				continue;
+			}
+			server[clients[i].socket]._req += buffer;
+			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
+			{
+				parse(server[clients[i].socket], buffer);
+				server[clients[i].socket].socket = clients[i].socket;
+				server[clients[i].socket]._server = *this;
+				server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
+				clients[i].isSending = false;
+			}
+		}
+		else if (FD_ISSET(clients[i].socket, &writes))
+		{
+			int status;
+
+			if (isValidRequestURI(server[clients[i].socket].path))
+				status = response.Create_response(server[clients[i].socket], "400");
+			else if (checkUriLength(server[clients[i].socket].path))
+				status = response.Create_response(server[clients[i].socket], "414");
+			else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
+				status = response.Create_response(server[clients[i].socket], "413");
+			else
+				status = response.Create_response(server[clients[i].socket], "");
+			if (status == 0)
+			{
+				std::cout << "Been here again\n";
+				server.erase(clients[i].socket);
+				FD_CLR(clients[i].socket, &writes);
+				CLOSESOCKET(clients[i].socket);
+				clients.erase(clients.begin() + i);
+			}
+		}
+	}
+}
+
+void	config::setup_sockets()
+{
+	for (int i = 0; i < _servers.size(); i++)
+		_servers[i].setting_PORT();
+}
+
+void	config::setup_cnx()
+{
+	for (int i = 0; i < _servers.size(); i++)
+		_servers[i].recieve_cnx();
+}
+
 Server&	Server::server_fill(std::ifstream &ifs, string &line)
 {
 	string word;

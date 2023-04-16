@@ -1,11 +1,7 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "../config/config.hpp"
-#include "../server.hpp"
 #include <fcntl.h>
-
-class Request;
 
 class response
 {
@@ -26,7 +22,7 @@ public:
 	void	reset_values();
 	void	_codes();
 	int		get_file(Request & request, const string &file);
-	int		unvalid_response(Request &Request, string code);
+	int		simple_response(Request &Request, string code);
 	int		redirection(Request & request, int flag);
 	int		auto_index(Request &request, string &path);
 	string	get_content_type(string extention);

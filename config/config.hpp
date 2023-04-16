@@ -10,12 +10,37 @@
 #include <fstream>
 #include <iostream>
 #include <dirent.h>
+#include <unistd.h>
 #include <algorithm>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <cstring>
+#include <cstdlib> 
+#include <netdb.h>
+#define PORT "8081"
+#define ISVALIDSOCKET(s) ((s) >= 0)
+#define CLOSESOCKET(s) close(s)
+#define SOCKET int
+#define GETSOCKETERRNO() (errno)
+#define MAX_REQUEST_SIZE 2047
+typedef	std::string	string;
+typedef	std::vector<string> stringvect;
+typedef	std::map<string, stringvect>	mapvect;
+typedef	std::map<string, string>	mapstring;
+#include "../request.hpp"
 
-typedef std::string	string;
-typedef std::vector<string> stringvect;
-typedef std::map<string, stringvect>	mapvect;
-typedef std::map<string, string>	mapstring;
+struct Client
+{
+		socklen_t address_length;
+		struct sockaddr_storage address;
+		int socket;
+		char request[MAX_REQUEST_SIZE + 1];
+		int received;
+		bool isSending;
+		std::string response;
+};
 
 class Location
 {
@@ -42,15 +67,25 @@ typedef std::map<string, Location> locationmap;
 class Server
 {
 private:
-	mapstring	_elements;
-	mapstring	_error_page;
-	locationmap	_location;
+	mapstring		_elements;
+	mapstring		_error_page;
+	locationmap		_location;
+	SOCKET			socket_listen;
+	struct addrinfo hints;
+	struct addrinfo *bind_address;
+	fd_set reads;
+	fd_set writes;
+	std::map<int, Request> server;
+	response response;
+	std::vector<Client> clients;
 public:
 	int			find_element(string key);
 	void		set_element(string key, string &value);
 	string 		get_element(string key);
 	string		get_error_page(string code);
 	Location	matchlocation(string &location);
+	void		setting_PORT();
+	void		recieve_cnx();
 	Server&		server_fill(std::ifstream &ifs, string &line);
 	void		must_fill();
 };
@@ -65,8 +100,15 @@ private:
 public:
 	void	conf(string conf);
 	Server	&matchname(string &servername);
+	void	setup_sockets();
+	void	setup_cnx();
 	void	must_fill();
 };
+
 string	get_words(string &line, stringvect &vector);
+int isValidRequestURI(const std::string &uri);
+int checkUriLength(const std::string &uri);
+int checkRequestBodySize(const std::string &body, size_t max_allowed);
+void parse(Request &server, string request);
 
 #endif

@@ -57,28 +57,28 @@ int	response::Delete_method(Request &Request)
 		if (fullpath.back() != '/')
 		{
 			Request.path += '/';
-			return unvalid_response(Request, "409");
+			return simple_response(Request, "409");
 		}
 		clear_dir(fullpath);
 		result = clear_dir(fullpath);
 		if (result != 204)
-			return unvalid_response(Request, std::to_string(result));
+			return simple_response(Request, std::to_string(result));
 		result = rmdir(fullpath.c_str());
 		if (result)
 		{
 			if (result == EACCES)
-				return unvalid_response(Request, "500");
-			return unvalid_response(Request, "403");
+				return simple_response(Request, "500");
+			return simple_response(Request, "403");
 		}
 		else
-			return unvalid_response(Request , "204");
+			return simple_response(Request , "204");
 	}
 	result = unlink(fullpath.c_str());
 	if (result)
 	{
 		if(result == EACCES)
-			return unvalid_response(Request, "500");
-		return unvalid_response(Request, "403");
+			return simple_response(Request, "500");
+		return simple_response(Request, "403");
 	}
-	return unvalid_response(Request , "204");
+	return simple_response(Request , "204");
 }
