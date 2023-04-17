@@ -7,9 +7,6 @@ typedef std::vector<Server> servervect;
 
 class config
 {
-	public:
-		stringvect	_ports;
-		servervect	_servers;
 
 	public:
 		void	conf(string conf);
@@ -17,6 +14,8 @@ class config
 		void	setup_sockets();
 		void	setup_cnx();
 		void	must_fill();
+		servervect	_servers;
+		stringvect	_ports;
 };
 
 #endif
