@@ -7,7 +7,6 @@ typedef std::vector<Server> servervect;
 
 class config
 {
-
 	public:
 		void	conf(string conf);
 		Server	&matchname(string &servername);
