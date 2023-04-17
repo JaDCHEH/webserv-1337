@@ -6,8 +6,8 @@
 class Request {
 
 	public :
-		string	method;
-		string	path;
+		string		method;
+		string		path;
 		string		_req;
 		std::string	http_version;
 		Location	_location;
@@ -21,8 +21,8 @@ class Request {
 		size_t		_file_size;
 		std::string host;
 		std::string body;
-		mapstring headers;
-		int socket;
+		mapstring	headers;
+		int			socket;
 };
 
 #endif

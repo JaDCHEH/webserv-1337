@@ -20,36 +20,36 @@ class Request;
 class Server
 {
 	private:
-		mapstring		_elements;
-		mapstring		_error_page;
-		locationmap		_location;
-		SOCKET			socket_listen;
-		struct addrinfo hints;
-		struct addrinfo *bind_address;
-		std::map<int, Request> server;
+		mapstring				_elements;
+		mapstring				_error_page;
+		locationmap				_location;
+		SOCKET					socket_listen;
+		struct addrinfo 		hints;
+		struct addrinfo 		*bind_address;
+		std::map<int, Request>	server;
 		response *res;
 	public:
-		std::vector<Client> clients;
-		static	fd_set reads;
-		static	fd_set writes;
-		void		reset();
-		int			find_element(string key);
-		void		set_element(string key, string &value);
-		string 		get_element(string key);
-		string		get_error_page(string code);
-		Location	matchlocation(string &location);
-		void		setting_PORT();
-		void		recieve_cnx();
-		Server		server_fill(std::ifstream &ifs, string &line);
-		void		must_fill();
-		int			getSocket();
+		std::vector<Client>		clients;
+		static	fd_set			reads;
+		static	fd_set			writes;
+		void					reset();
+		int						find_element(string key);
+		void					set_element(string key, string &value);
+		string 					get_element(string key);
+		string					get_error_page(string code);
+		Location				matchlocation(string &location);
+		void					setting_PORT();
+		void					recieve_cnx();
+		Server					server_fill(std::ifstream &ifs, string &line);
+		void					must_fill();
+		int						getSocket();
 };
 
 class Request {
 
 	public :
-		string	method;
-		string	path;
+		string		method;
+		string		path;
 		string		_req;
 		std::string	http_version;
 		Location	_location;
@@ -60,11 +60,11 @@ class Request {
 		size_t		_amount_written;
 		int			_fd;
 		int			_buffer_state;
+		int			socket;
 		size_t		_file_size;
-		std::string host;
-		std::string body;
-		mapstring headers;
-		int socket;
+		std::string	host;
+		std::string	body;
+		mapstring	headers;
 };
 int isValidRequestURI(const std::string &uri);
 int checkUriLength(const std::string &uri);
