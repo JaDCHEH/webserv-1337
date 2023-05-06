@@ -46,7 +46,11 @@ int main(int ac, char **av)
 			}
 
 		}
-	if (select(max_socket + 1, &Server::reads, &Server::writes, 0, 0) == -1)
+	struct timeval tv;
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+
+	if (select(max_socket + 1, &Server::reads, &Server::writes, 0, &tv) == -1)
 	{
 		std::cout << "Failed to select. errno: "
 				  << " " << strerror(errno) << std::endl;

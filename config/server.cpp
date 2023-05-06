@@ -143,13 +143,13 @@ void	Server::recieve_cnx()
 	{
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 		{
-			std::cout << "Been here" << std::endl;
+			// std::cout << "Been here" << std::endl;
 			string buffer;
 			buffer.resize(2000);
 			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
-			if (bytes_received < 1)
+			if (bytes_received == 0)
 			{
-				std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+				// std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
 				server.erase(clients[i].socket);
 				FD_CLR(clients[i].socket, &reads);
 				FD_CLR(clients[i].socket, &writes);
@@ -157,6 +157,8 @@ void	Server::recieve_cnx()
 				clients.erase(clients.begin() + i);
 				continue;
 			}
+			else if (bytes_received < 0)
+				continue;
 			server[clients[i].socket]._req += buffer;
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
