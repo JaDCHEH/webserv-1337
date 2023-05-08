@@ -61,6 +61,7 @@ class Request {
 		int			_fd;
 		int			_buffer_state;
 		int			socket;
+		string		code;
 		size_t		_file_size;
 		std::string	host;
 		std::string	body;

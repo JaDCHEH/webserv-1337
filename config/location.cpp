@@ -57,6 +57,7 @@ int Location::location_elements(const string &element)
 	location_ele["root"] = "";
 	location_ele["upload"] = "";
 	location_ele["return"] = "";
+	location_ele["upload"] = "";
 	if(location_ele.find(element) != location_ele.end())
 		return 1;
 	return 0;
@@ -90,6 +91,8 @@ void Location::must_fill(const string &root)
 		_elements["root"] = root;
 	if (_elements.find("auto_index") == _elements.end())
 		_elements["auto_index"] = "off";
+	if (_elements.find("upload") == _elements.end())
+		_elements["upload"] = "off";
 }
 
 void	Location::location_fill(std::ifstream &ifs, string &line)
