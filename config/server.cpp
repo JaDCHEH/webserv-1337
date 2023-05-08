@@ -167,6 +167,7 @@ void	Server::recieve_cnx()
 				server[clients[i].socket]._server = *this;
 				server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
 				clients[i].isSending = false;
+				server[clients[i].socket].code = "";
 				if (isValidRequestURI(server[clients[i].socket].path))
 					server[clients[i].socket].code = "400";
 				else if (checkUriLength(server[clients[i].socket].path))
@@ -177,7 +178,7 @@ void	Server::recieve_cnx()
 		}
 		else if (FD_ISSET(clients[i].socket, &writes))
 		{
-			if (res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
+			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
 			{
 				std::cout << "Been here again\n";
 				server.erase(clients[i].socket);

@@ -30,7 +30,7 @@ public:
 	int		auto_index(Request &request, string &path);
 	int		Get_method(Request &Request);
 	int 	Delete_method(Request &Request);
-	int		Post_method(Request &Request);
+//	int		Post_method(Request &Request);
 	int		Create_response(Request &Request, string code);
 };
 

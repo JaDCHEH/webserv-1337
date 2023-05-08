@@ -142,7 +142,7 @@ int	response::Create_response(Request & Request, string code)
 		return Get_method(Request);
 	else if (Request.method == "DELETE")
 		return Delete_method(Request);
-	else if (Request.method == "POST")
-		return Post_method(Request);
+//	else if (Request.method == "POST")
+//		return Post_method(Request);
 	return 0;
 }
