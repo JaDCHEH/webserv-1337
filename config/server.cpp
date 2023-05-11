@@ -29,8 +29,34 @@ int checkRequestBodySize(const std::string &body, size_t max_allowed)
 	return (0);
 }
 
+void	post_parse(mapstring &mas, Request & server)
+{
+	string key, value;
+	int	tflag = 0, cflag = 0;
+	for (mapstring::iterator it = mas.begin(); it != mas.end(); it++)
+	{
+		if ((*it).first == "\r\nTransfer-Encoding")
+		{
+			tflag = 1;
+			if ((*it).second == " chunked")
+				server.code = "valid"; // Valid request
+			else
+				server.code = "501";// "501 Not Implemented" If the Transfer-Encoding header specifies an encoding mechanism other than "chunked"
+		}
+		if ((*it).first == "Content-Length")
+			cflag = 1;
+	}
+	if (!tflag && !cflag)
+		server.code = "400"; // "Bad request" If both the Content-Length and Transfer-Encoding headers are missing or not specified
+	else if (!tflag || !cflag)
+		server.code = "411"; // "Length Required" If either the Content-Length or Transfer-Encoding header is missing or not specified
+
+}
+
 void parse(Request &server, string request)
 {
+	string test;
+	//first of all let's check the request string ////// parse(server[clients[i].socket], buffer, 
 	// Convert the Request char array to an input string stream
 	std::istringstream iss(request);
 	// Create a Server object to hold the parsed Request data
@@ -43,8 +69,11 @@ void parse(Request &server, string request)
 		iss.ignore(1); // ignore newline character
 		server.headers[header_key] = header_value;
 	}
+	if (server.method == "POST")
+		post_parse(server.headers, server);
+
 	// Extract the body of the Request
-	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
+	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers // reading the body 
 	// Return the parsed Server object
 	server._buffer_state = 0;
 	server._first = 0;
@@ -163,6 +192,7 @@ void	Server::recieve_cnx()
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
 				parse(server[clients[i].socket], buffer);
+				std::cout << "just checking post parse: " << server[clients[i].socket].code << std::endl;
 				server[clients[i].socket].socket = clients[i].socket;
 				server[clients[i].socket]._server = *this;
 				server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
