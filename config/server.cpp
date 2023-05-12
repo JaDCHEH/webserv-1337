@@ -91,7 +91,7 @@ void	Server::setting_PORT()
 	socket_listen = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
 	if (!ISVALIDSOCKET(socket_listen))
 	{
-		std::cout << "Failed to create socket. errno " << errno << std::endl;
+		std::cout << "Failed to create socket. errno: " << errno << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	int sss = 1;
@@ -115,28 +115,28 @@ void	Server::setting_PORT()
 void	Server::recieve_cnx()
 {
 	res = new response;
-	if (FD_ISSET(socket_listen, &reads))
-	{
-		Client client;
-		bzero(&client, sizeof(Client));
-		client.isSending = true;
-		client.address_length = sizeof(client.address);
-		SOCKET socket_client = accept(socket_listen,
-									  (struct sockaddr *)&client.address, &client.address_length);
-		if (!ISVALIDSOCKET(socket_client))
-		{
-			std::cout << "Accept failed errno: "
-					  << " " << strerror(errno) << std::endl;
-		}
-		fcntl(socket_client, F_SETFL, O_NONBLOCK);
-		client.socket = socket_client;
-		clients.push_back(client);
-		char address_buffer[100];
-		getnameinfo((struct sockaddr *)&client.address,
-					client.address_length,
-					address_buffer, sizeof(address_buffer), 0, 0,
-					NI_NUMERICHOST);
-	}
+	// if (FD_ISSET(socket_listen, &reads))
+	// {
+	// 	Client client;
+	// 	bzero(&client, sizeof(Client));
+	// 	client.isSending = true;
+	// 	client.address_length = sizeof(client.address);
+	// 	SOCKET socket_client = accept(socket_listen,
+	// 								  (struct sockaddr *)&client.address, &client.address_length);
+	// 	if (!ISVALIDSOCKET(socket_client))
+	// 	{
+	// 		std::cout << "Accept failed errno: "
+	// 				  << " " << strerror(errno) << std::endl;
+	// 	}
+	// 	fcntl(socket_client, F_SETFL, O_NONBLOCK);
+	// 	client.socket = socket_client;
+	// 	clients.push_back(client);
+	// 	char address_buffer[100];
+	// 	getnameinfo((struct sockaddr *)&client.address,
+	// 				client.address_length,
+	// 				address_buffer, sizeof(address_buffer), 0, 0,
+	// 				NI_NUMERICHOST);
+	// }
 	for (size_t i = 0; i < clients.size(); i++)
 	{
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))

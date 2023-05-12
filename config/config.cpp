@@ -11,6 +11,31 @@ void	config::setup_sockets()
 void	config::setup_cnx()
 {
 	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		if (FD_ISSET(_servers[i].getSocket(), &Server::reads))
+		{
+			Client client;
+			bzero(&client, sizeof(Client));
+			client.isSending = true;
+			client.address_length = sizeof(client.address);
+			SOCKET socket_client = accept(_servers[i].getSocket(),
+										  (struct sockaddr *)&client.address, &client.address_length);
+			if (!ISVALIDSOCKET(socket_client))
+			{
+				std::cout << "Accept failed errno: "
+						  << " " << strerror(errno) << std::endl;
+			}
+			fcntl(socket_client, F_SETFL, O_NONBLOCK);
+			client.socket = socket_client;
+			_servers[i].clients.push_back(client);
+			char address_buffer[100];
+			getnameinfo((struct sockaddr *)&client.address,
+						client.address_length,
+						address_buffer, sizeof(address_buffer), 0, 0,
+						NI_NUMERICHOST);
+		}
+	}
+	for (size_t i = 0; i < _servers.size(); i++)
 		_servers[i].recieve_cnx();
 }
 
