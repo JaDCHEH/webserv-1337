@@ -29,34 +29,8 @@ int checkRequestBodySize(const std::string &body, size_t max_allowed)
 	return (0);
 }
 
-void	post_parse(mapstring &mas, Request & server)
-{
-	string key, value;
-	int	tflag = 0, cflag = 0;
-	for (mapstring::iterator it = mas.begin(); it != mas.end(); it++)
-	{
-		if ((*it).first == "\r\nTransfer-Encoding")
-		{
-			tflag = 1;
-			if ((*it).second == " chunked")
-				server.code = "valid"; // Valid request
-			else
-				server.code = "501";// "501 Not Implemented" If the Transfer-Encoding header specifies an encoding mechanism other than "chunked"
-		}
-		if ((*it).first == "Content-Length")
-			cflag = 1;
-	}
-	if (!tflag && !cflag)
-		server.code = "400"; // "Bad request" If both the Content-Length and Transfer-Encoding headers are missing or not specified
-	else if (!tflag || !cflag)
-		server.code = "411"; // "Length Required" If either the Content-Length or Transfer-Encoding header is missing or not specified
-
-}
-
 void parse(Request &server, string request)
 {
-	string test;
-	//first of all let's check the request string ////// parse(server[clients[i].socket], buffer, 
 	// Convert the Request char array to an input string stream
 	std::istringstream iss(request);
 	// Create a Server object to hold the parsed Request data
@@ -69,11 +43,8 @@ void parse(Request &server, string request)
 		iss.ignore(1); // ignore newline character
 		server.headers[header_key] = header_value;
 	}
-	if (server.method == "POST")
-		post_parse(server.headers, server);
-
 	// Extract the body of the Request
-	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers // reading the body 
+	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	// Return the parsed Server object
 	server._buffer_state = 0;
 	server._first = 0;
@@ -120,7 +91,7 @@ void	Server::setting_PORT()
 	socket_listen = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
 	if (!ISVALIDSOCKET(socket_listen))
 	{
-		std::cout << "Failed to create socket. errno: " << errno << std::endl;
+		std::cout << "Failed to create socket. errno " << errno << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	int sss = 1;
@@ -160,7 +131,6 @@ void	Server::recieve_cnx()
 		fcntl(socket_client, F_SETFL, O_NONBLOCK);
 		client.socket = socket_client;
 		clients.push_back(client);
-		FD_SET(socket_client, &reads);
 		char address_buffer[100];
 		getnameinfo((struct sockaddr *)&client.address,
 					client.address_length,
@@ -172,47 +142,47 @@ void	Server::recieve_cnx()
 	{
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 		{
-			// std::cout << "Been here" << std::endl;
+			std::cout << "Been here" << std::endl;
 			string buffer;
 			buffer.resize(2000);
 			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
-			if (bytes_received == 0)
+			if (bytes_received < 1)
 			{
-				// std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+				if (bytes_received == 0)
+					std::cout << "Connexion got dropped by the ! " << strerror(errno) << std::endl;
+				
+				else
+					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
 				server.erase(clients[i].socket);
-				FD_CLR(clients[i].socket, &reads);
-				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
 				clients.erase(clients.begin() + i);
 				continue;
 			}
-			else if (bytes_received < 0)
-				continue;
 			server[clients[i].socket]._req += buffer;
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
 				parse(server[clients[i].socket], buffer);
-				std::cout << "just checking post parse: " << server[clients[i].socket].code << std::endl;
 				server[clients[i].socket].socket = clients[i].socket;
 				server[clients[i].socket]._server = *this;
 				server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
 				clients[i].isSending = false;
-				server[clients[i].socket].code = "";
-				if (isValidRequestURI(server[clients[i].socket].path))
-					server[clients[i].socket].code = "400";
-				else if (checkUriLength(server[clients[i].socket].path))
-					server[clients[i].socket].code = "414";
-				else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
-					server[clients[i].socket].code = "413";
 			}
 		}
 		else if (FD_ISSET(clients[i].socket, &writes))
 		{
-			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
+			int status;
+			if (isValidRequestURI(server[clients[i].socket].path))
+				status = res->Create_response(server[clients[i].socket], "400");
+			else if (checkUriLength(server[clients[i].socket].path))
+				status = res->Create_response(server[clients[i].socket], "414");
+			else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
+				status = res->Create_response(server[clients[i].socket], "413");
+			else
+				status = res->Create_response(server[clients[i].socket], "");
+			if (status == 0)
 			{
 				std::cout << "Been here again\n";
 				server.erase(clients[i].socket);
-				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
 				clients.erase(clients.begin() + i);
 			}
