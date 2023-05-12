@@ -13,12 +13,12 @@ int	response::Post_method(Request &Request)
 			return redirection(Request, 1);
 		}
 	}
-	int fd = open(fullpath.c_str(), O_RDONLY);
-	if (fd >= 0)
-	{
-		close(fd);
-		return get_file(Request, fullpath);
-	}
 	else
-		return simple_response(Request, "404");
+	{
+		std::ofstream file(fullpath);
+		if (!file)
+			return simple_response(Request, "403");
+		file << Request.body;
+		return simple_response(Request, "201");
+	}
 }

@@ -131,13 +131,11 @@ void	Server::recieve_cnx()
 		fcntl(socket_client, F_SETFL, O_NONBLOCK);
 		client.socket = socket_client;
 		clients.push_back(client);
-		FD_SET(socket_client, &reads);
 		char address_buffer[100];
 		getnameinfo((struct sockaddr *)&client.address,
 					client.address_length,
 					address_buffer, sizeof(address_buffer), 0, 0,
 					NI_NUMERICHOST);
-		std::cout << "New connection from: " << address_buffer << std::endl;
 	}
 	for (size_t i = 0; i < clients.size(); i++)
 	{
@@ -147,18 +145,18 @@ void	Server::recieve_cnx()
 			string buffer;
 			buffer.resize(2000);
 			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
-			if (bytes_received == 0)
+			if (bytes_received < 1)
 			{
-				// std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
+				if (bytes_received == 0)
+					std::cout << "Connexion got dropped by the client! " << strerror(errno) << std::endl;
+				
+				else
+					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
 				server.erase(clients[i].socket);
-				FD_CLR(clients[i].socket, &reads);
-				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
 				clients.erase(clients.begin() + i);
 				continue;
 			}
-			else if (bytes_received < 0)
-				continue;
 			server[clients[i].socket]._req += buffer;
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
@@ -180,7 +178,6 @@ void	Server::recieve_cnx()
 		{
 			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
 			{
-				std::cout << "Been here again\n";
 				server.erase(clients[i].socket);
 				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
