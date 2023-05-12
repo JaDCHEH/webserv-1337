@@ -165,22 +165,21 @@ void	Server::recieve_cnx()
 				server[clients[i].socket]._server = *this;
 				server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
 				clients[i].isSending = false;
+				server[clients[i].socket].code = "";
+				if (isValidRequestURI(server[clients[i].socket].path))
+					server[clients[i].socket].code = "400";
+				else if (checkUriLength(server[clients[i].socket].path))
+					server[clients[i].socket].code = "414";
+				else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
+					server[clients[i].socket].code = "413";
 			}
 		}
 		else if (FD_ISSET(clients[i].socket, &writes))
 		{
-			int status;
-			if (isValidRequestURI(server[clients[i].socket].path))
-				status = res->Create_response(server[clients[i].socket], "400");
-			else if (checkUriLength(server[clients[i].socket].path))
-				status = res->Create_response(server[clients[i].socket], "414");
-			else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
-				status = res->Create_response(server[clients[i].socket], "413");
-			else
-				status = res->Create_response(server[clients[i].socket], "");
-			if (status == 0)
+			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
 			{
 				server.erase(clients[i].socket);
+				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
 				clients.erase(clients.begin() + i);
 			}
