@@ -43,15 +43,13 @@ int main(int ac, char **av)
 				if (conf._servers[i].clients[j].socket > max_socket)
 					max_socket = conf._servers[i].clients[j].socket;
 			}
-
 		}
-
-	if (select(max_socket + 1, &Server::reads, &Server::writes, 0, 0) == -1)
-	{
-		std::cout << "Failed to select. errno: "
-				  << " " << strerror(errno) << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	conf.setup_cnx();
+		if (select(max_socket + 1, &Server::reads, &Server::writes, 0, 0) == -1)
+		{
+			std::cout << "Failed to select. errno: "
+					  << " " << strerror(errno) << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		conf.setup_cnx();
 	}
 }

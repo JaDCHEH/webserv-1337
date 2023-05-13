@@ -185,7 +185,6 @@ void	Server::recieve_cnx()
 			server[clients[i].socket]._req += buffer;
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
-				// std::cout << "Finished" << std::endl;
 				parse(server[clients[i].socket], buffer);
 				server[clients[i].socket].socket = clients[i].socket;
 				server[clients[i].socket]._server = *this;
@@ -199,10 +198,10 @@ void	Server::recieve_cnx()
 				else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
 					server[clients[i].socket].code = "413";
 			}
+			buffer.clear();
 		}
 		else if (FD_ISSET(clients[i].socket, &writes))
 		{
-			// std::cout << "Sending response" << std::endl;
 			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
 			{
 				server.erase(clients[i].socket);
