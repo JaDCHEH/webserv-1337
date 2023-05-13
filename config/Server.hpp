@@ -28,6 +28,7 @@ class Server
 		struct addrinfo 		*bind_address;
 		std::map<int, Request>	server;
 		response *res;
+		int r;
 	public:
 		std::vector<Client>		clients;
 		static	fd_set			reads;

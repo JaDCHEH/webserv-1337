@@ -26,7 +26,6 @@ int main(int ac, char **av)
 		int max_socket = -1;
 		FD_ZERO(&Server::reads);
 		FD_ZERO(&Server::writes);
-		// FD_SET(socket_listen, &reads);
 		for (size_t i = 0; i < conf._servers.size(); i++)
 		{
 			FD_SET(conf._servers[i].getSocket(), &Server::reads);
@@ -46,11 +45,8 @@ int main(int ac, char **av)
 			}
 
 		}
-	struct timeval tv;
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
 
-	if (select(max_socket + 1, &Server::reads, &Server::writes, 0, &tv) == -1)
+	if (select(max_socket + 1, &Server::reads, &Server::writes, 0, 0) == -1)
 	{
 		std::cout << "Failed to select. errno: "
 				  << " " << strerror(errno) << std::endl;

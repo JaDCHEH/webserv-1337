@@ -115,33 +115,32 @@ void	Server::setting_PORT()
 void	Server::recieve_cnx()
 {
 	res = new response;
-	// if (FD_ISSET(socket_listen, &reads))
-	// {
-	// 	Client client;
-	// 	bzero(&client, sizeof(Client));
-	// 	client.isSending = true;
-	// 	client.address_length = sizeof(client.address);
-	// 	SOCKET socket_client = accept(socket_listen,
-	// 								  (struct sockaddr *)&client.address, &client.address_length);
-	// 	if (!ISVALIDSOCKET(socket_client))
-	// 	{
-	// 		std::cout << "Accept failed errno: "
-	// 				  << " " << strerror(errno) << std::endl;
-	// 	}
-	// 	fcntl(socket_client, F_SETFL, O_NONBLOCK);
-	// 	client.socket = socket_client;
-	// 	clients.push_back(client);
-	// 	char address_buffer[100];
-	// 	getnameinfo((struct sockaddr *)&client.address,
-	// 				client.address_length,
-	// 				address_buffer, sizeof(address_buffer), 0, 0,
-	// 				NI_NUMERICHOST);
-	// }
+	if (FD_ISSET(socket_listen, &reads))
+	{
+		Client client;
+		bzero(&client, sizeof(Client));
+		client.isSending = true;
+		client.address_length = sizeof(client.address);
+		SOCKET socket_client = accept(socket_listen,
+									  (struct sockaddr *)&client.address, &client.address_length);
+		if (!ISVALIDSOCKET(socket_client))
+		{
+			std::cout << "Accept failed errno: "
+					  << " " << strerror(errno) << std::endl;
+		}
+		fcntl(socket_client, F_SETFL, O_NONBLOCK);
+		client.socket = socket_client;
+		clients.push_back(client);
+		char address_buffer[100];
+		getnameinfo((struct sockaddr *)&client.address,
+					client.address_length,
+					address_buffer, sizeof(address_buffer), 0, 0,
+					NI_NUMERICHOST);
+	}
 	for (size_t i = 0; i < clients.size(); i++)
 	{
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 		{
-			std::cout << "Been here" << std::endl;
 			string buffer;
 			buffer.resize(2000);
 			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
@@ -160,6 +159,7 @@ void	Server::recieve_cnx()
 			server[clients[i].socket]._req += buffer;
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
+				// std::cout << "Finished" << std::endl;
 				parse(server[clients[i].socket], buffer);
 				server[clients[i].socket].socket = clients[i].socket;
 				server[clients[i].socket]._server = *this;
@@ -176,6 +176,7 @@ void	Server::recieve_cnx()
 		}
 		else if (FD_ISSET(clients[i].socket, &writes))
 		{
+			// std::cout << "Sending response" << std::endl;
 			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
 			{
 				server.erase(clients[i].socket);
@@ -185,6 +186,7 @@ void	Server::recieve_cnx()
 			}
 		}
 	}
+	delete(res);
 }
 
 Server	Server::server_fill(std::ifstream &ifs, string &line)
@@ -280,6 +282,7 @@ void Server::must_fill()
 	};
 	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
 		it->second.must_fill(_elements["root"]);
+	r = 0;
 }
 
 int	Server::find_element(string key)

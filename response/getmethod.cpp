@@ -46,6 +46,7 @@ int	response::get_file(Request & Request, const string &file)
 		if (j < 0)
 			return simple_response(Request, "404");
 		Request._buffer += buffer;
+		buffer.clear();
 		i += j;
 		if(!j)
 			close(Request._fd);
