@@ -9,7 +9,7 @@ struct Client
 	socklen_t address_length;
 	struct sockaddr_storage address;
 	int socket;
-	char request[MAX_REQUEST_SIZE + 1];
+	// std::string request;
 	int received;
 	bool isSending;
 	std::string response;

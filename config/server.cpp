@@ -68,7 +68,7 @@ void parse(Request &server, string request)
 	}
 	if (server.method == "POST")
 		post_parse(server.headers, server);
-	std::cout << "check code : " << server.code << std::endl;
+	// std::cout << "check code : " << server.code << std::endl;
 	// Extract the body of the Request
 	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	// Return the parsed Server object
@@ -149,6 +149,7 @@ void	Server::recieve_cnx()
 		client.address_length = sizeof(client.address);
 		SOCKET socket_client = accept(socket_listen,
 									  (struct sockaddr *)&client.address, &client.address_length);
+		// std::cout << "new socket "<< socket_client << std::endl;
 		if (!ISVALIDSOCKET(socket_client))
 		{
 			std::cout << "Accept failed errno: "
@@ -179,7 +180,10 @@ void	Server::recieve_cnx()
 					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
 				server.erase(clients[i].socket);
 				CLOSESOCKET(clients[i].socket);
+				server[clients[i].socket]._req.clear();
+				server[clients[i].socket].body.clear();
 				clients.erase(clients.begin() + i);
+				// server.erase(clients[i].socket);
 				continue;
 			}
 			server[clients[i].socket]._req += buffer;
@@ -204,10 +208,14 @@ void	Server::recieve_cnx()
 		{
 			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
 			{
+				// clients[i].isSending = true;
 				server.erase(clients[i].socket);
 				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
 				clients.erase(clients.begin() + i);
+				server[clients[i].socket]._req.clear();
+				server[clients[i].socket].body.clear();
+				// server.erase(clients[i].socket);
 			}
 		}
 	}
