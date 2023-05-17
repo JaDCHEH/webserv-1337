@@ -2,9 +2,9 @@ NAME = webserv
 
 CC = @c++
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS =  -std=c++98 
 
-CPP_FILES = server.cpp\
+CPP_FILES = webserv.cpp\
 			 config/config.cpp\
 			 config/Location.cpp\
 			 config/server.cpp\

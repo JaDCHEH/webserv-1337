@@ -69,7 +69,11 @@ void	response::reset_values()
 	_initial_line.clear();
 	_headers.clear();
 	_body.clear();
-	_codes();
+}
+
+void response::init()
+{
+	_codes(); 
 	_extentions();
 }
 
@@ -108,15 +112,15 @@ int	response::simple_response(Request &Request, string code)
 	if (code == "301")
 		fill_header("Location", Request._location.get_element("return"));
 	_headers.clear();
-	if(Request._server.get_error_page(code) == "")
+	if(Request.get_error_page(code) == "")
 	{
 		fill_header("Content-Type", "text/html");
 		error = error_page_builder(code);
 	}
 	else
 	{
-		fill_header("Content-Type", get_content_type(Request._server.get_error_page(code).substr(Request._server.get_error_page(code).find_last_of("."))));
-		error = file_get(Request._server.get_error_page(code));
+		fill_header("Content-Type", get_content_type(Request.get_error_page(code).substr(Request.get_error_page(code).find_last_of("."))));
+		error = file_get(Request.get_error_page(code));
 	}
 	fill_header("Content-Length", std::to_string(error.size()));
 	_headers += "\r\n";
@@ -133,7 +137,10 @@ int	response::Create_response(Request & Request, string code)
 	if (code != "")
 		return simple_response (Request, code);
 	else if (Request._location.get_real() == -1)
+	{
+		std::cout<<"jahna"<<std::endl;
 		return simple_response (Request, "404");
+	}
 	else if (Request._location.find_element("return"))
 		return redirection (Request, 0);
 	else if (!Request._location.is_method_allowed(Request.method))
@@ -142,7 +149,7 @@ int	response::Create_response(Request & Request, string code)
 		return Get_method(Request);
 	else if (Request.method == "DELETE")
 		return Delete_method(Request);
-//	else if (Request.method == "POST")
-//		return Post_method(Request);
+	// else if (Request.method == "POST")
+	// 	return Post_method(Request);
 	return 0;
 }

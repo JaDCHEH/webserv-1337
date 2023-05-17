@@ -24,6 +24,7 @@ public:
 	void	reset_values();
 	void	_codes();
 	void	_extentions();
+	void	init();
 	int		get_file(Request &request, const string &file);
 	int		simple_response(Request &Request, string code);
 	int		redirection(Request &request, int flag);

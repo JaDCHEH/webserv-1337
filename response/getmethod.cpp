@@ -20,20 +20,20 @@ int	response::get_file(Request & Request, const string &file)
 	std::ifstream  file_stream(file);
 	if (!file_stream)
 		return simple_response(Request, "404");
-	fill_initial_line(Request.http_version, "200");
 	string	buffer;
-	fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
-	file_stream.seekg(0, file_stream.end);
-	Request._file_size = file_stream.tellg();
 	buffer.resize(2000);
-	fill_header("Content-Length", std::to_string(file_stream.tellg()));
-	file_stream.seekg(0, file_stream.beg);
-	file_stream.close();
-	_headers += "\r\n";
 	int i = 0;
 	int j = 0;
 	if (!Request._first)
 	{
+		fill_initial_line(Request.http_version, "200");
+		fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
+		file_stream.seekg(0, file_stream.end);
+		fill_header("Content-Length", std::to_string(file_stream.tellg()));
+		_headers += "\r\n";
+		Request._file_size = file_stream.tellg();
+		file_stream.seekg(0, file_stream.beg);
+		file_stream.close();
 		Request._buffer = _initial_line + _headers;
 		Request._first = 1;
 		Request._fd = open(file.c_str(), O_RDONLY);

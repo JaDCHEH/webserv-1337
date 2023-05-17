@@ -67,7 +67,10 @@ void parse(Request &server, string request)
 		server.headers[header_key] = header_value;
 	}
 	if (server.method == "POST")
+	{
 		post_parse(server.headers, server);
+
+	}
 	// std::cout << "check code : " << server.code << std::endl;
 	// Extract the body of the Request
 	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
@@ -95,7 +98,7 @@ int serv_elements(string element)
 	return 0;
 }
 
-string	Server::get_error_page(string code)
+string	Request::get_error_page(string code)
 {
 	mapstring::iterator it = _error_page.find(code);
 	if (it == _error_page.end())
@@ -141,11 +144,19 @@ void	Server::setting_PORT()
 void	Server::recieve_cnx()
 {
 	res = new response;
+	res->init();
+
+	string buffer;
 	if (FD_ISSET(socket_listen, &reads))
 	{
 		Client client;
-		bzero(&client, sizeof(Client));
+		bzero(&client.address, sizeof(struct sockaddr_storage));
+		char address_buffer[100];
 		client.isSending = true;
+		client.received = 0;
+		client.request._amount_written = 0;
+		client.request._size_to_write = 0;
+		client.request._buffer_state = 0;
 		client.address_length = sizeof(client.address);
 		SOCKET socket_client = accept(socket_listen,
 									  (struct sockaddr *)&client.address, &client.address_length);
@@ -158,17 +169,16 @@ void	Server::recieve_cnx()
 		fcntl(socket_client, F_SETFL, O_NONBLOCK);
 		client.socket = socket_client;
 		clients.push_back(client);
-		char address_buffer[100];
 		getnameinfo((struct sockaddr *)&client.address,
 					client.address_length,
 					address_buffer, sizeof(address_buffer), 0, 0,
 					NI_NUMERICHOST);
 	}
+	// std::cout << clients.size() << std::endl;
 	for (size_t i = 0; i < clients.size(); i++)
 	{
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 		{
-			string buffer;
 			buffer.resize(2000);
 			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
 			if (bytes_received < 1)
@@ -178,44 +188,41 @@ void	Server::recieve_cnx()
 				
 				else
 					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
-				server.erase(clients[i].socket);
 				CLOSESOCKET(clients[i].socket);
-				server[clients[i].socket]._req.clear();
-				server[clients[i].socket].body.clear();
+				clients[i].request._req.clear();
+				clients[i].request.body.clear();
 				clients.erase(clients.begin() + i);
-				// server.erase(clients[i].socket);
+				i--;
 				continue;
 			}
-			server[clients[i].socket]._req += buffer;
+			clients[i].request._req += buffer;
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
-				parse(server[clients[i].socket], buffer);
-				server[clients[i].socket].socket = clients[i].socket;
-				server[clients[i].socket]._server = *this;
-				server[clients[i].socket]._location = server[clients[i].socket]._server.matchlocation(server[clients[i].socket].path);
+				parse(clients[i].request, clients[i].request._req);
 				clients[i].isSending = false;
-				server[clients[i].socket].code = "";
-				if (isValidRequestURI(server[clients[i].socket].path))
-					server[clients[i].socket].code = "400";
-				else if (checkUriLength(server[clients[i].socket].path))
-					server[clients[i].socket].code = "414";
-				else if (checkRequestBodySize(server[clients[i].socket].body, std::stoul(server[clients[i].socket]._server.get_element("max_body_size"))))
-					server[clients[i].socket].code = "413";
+				clients[i].request.socket = clients[i].socket;
+				clients[i].request._error_page = _error_page;
+				clients[i].request._location = matchlocation(clients[i].request.path);
+				clients[i].request.code = "";
+				if (isValidRequestURI(clients[i].request.path))
+					clients[i].request.code = "400";
+				else if (checkUriLength(clients[i].request.path))
+					clients[i].request.code = "414";
+				else if (checkRequestBodySize(clients[i].request.body, std::stoul(get_element("max_body_size"))))
+					clients[i].request.code = "413";
 			}
 			buffer.clear();
 		}
 		else if (FD_ISSET(clients[i].socket, &writes))
 		{
-			if (!res->Create_response(server[clients[i].socket], server[clients[i].socket].code))
+			if (!res->Create_response(clients[i].request, clients[i].request.code))
 			{
-				// clients[i].isSending = true;
-				server.erase(clients[i].socket);
 				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
+				clients[i].request._req.clear();
+				clients[i].request.body.clear();
 				clients.erase(clients.begin() + i);
-				server[clients[i].socket]._req.clear();
-				server[clients[i].socket].body.clear();
-				// server.erase(clients[i].socket);
+				i--;
 			}
 		}
 	}
