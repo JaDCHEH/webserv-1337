@@ -116,7 +116,12 @@ int	response::Get_method(Request & Request)
 			return redirection(Request, 1);
 		}
 		else if (Request._location.get_element("index") != "")
+		{
+			// adding CGI if we found dir
+			if (Request._location.get_CgiFlag())
+				handle_cgi(Request, fullpath + Request._location.get_element("index"));
 			return get_file(Request, fullpath + Request._location.get_element("index"));
+		}
 		else if (Request._location.get_element("autoindex") == "on")
 			return auto_index(Request, fullpath);
 		else if (Request._location.get_element("autoindex") == "off")

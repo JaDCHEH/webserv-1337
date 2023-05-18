@@ -59,6 +59,14 @@ void parse(Request &server, string request)
 	// Create a Server object to hold the parsed Request data
 	// Extract the HTTP method, path, and version from the Request
 	iss >> server.method >> server.path >> server.http_version;
+
+	// Filling the query string CGI
+	if (server.path.find("?") != std::string::npos)
+	{
+		server.query_str = server.path.substr(server.path.find("?") + 1);
+		server.path = server.path.substr(0, server.path.find("?"));
+	}
+
 	// Extract the headers from the Request
 	std::string header_key, header_value;
 	while (std::getline(iss, header_key, ':') && std::getline(iss, header_value, '\r'))
