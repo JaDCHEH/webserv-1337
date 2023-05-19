@@ -31,9 +31,6 @@ int main(int ac, char **av)
 			FD_SET(conf._servers[i].getSocket(), &Server::reads);
 			if (conf._servers[i].getSocket() > max_socket)
 				max_socket = conf._servers[i].getSocket();
-		}
-		for (size_t i = 0; i < conf._servers.size(); i++)
-		{
 			for (size_t j = 0; j < conf._servers[i].clients.size(); j++)
 			{
 				if (conf._servers[i].clients[j].isSending == true)
