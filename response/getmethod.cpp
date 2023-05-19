@@ -54,7 +54,10 @@ int	response::get_file(Request & Request, const string &file)
 	int a;
 	a = send(Request.socket,&Request._buffer[0], i, 0);
 	if (a < 0)
+	{
+		close(Request._fd);
 		return 0;
+	}
 	Request._amount_written += a;
 	if (a != (int)Request._buffer.size())
 	{
@@ -67,7 +70,10 @@ int	response::get_file(Request & Request, const string &file)
 		Request._buffer_state = 0;
 	}
 	if (Request._amount_written == Request._size_to_write)
+	{
+		close(Request._fd);
 		return 0;
+	}
 	return 1;
 }
 

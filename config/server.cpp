@@ -185,6 +185,7 @@ void	Server::recieve_cnx()
 	// std::cout << clients.size() << std::endl;
 	for (size_t i = 0; i < clients.size(); i++)
 	{
+		std::cout << clients.size() <<" "<< i << std::endl;
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 		{
 			buffer.resize(2000);
@@ -193,7 +194,6 @@ void	Server::recieve_cnx()
 			{
 				if (bytes_received == 0)
 					std::cout << "Connexion got dropped by the client! " << strerror(errno) << std::endl;
-				
 				else
 					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
 				CLOSESOCKET(clients[i].socket);
@@ -225,7 +225,6 @@ void	Server::recieve_cnx()
 		{
 			if (!res->Create_response(clients[i].request, clients[i].request.code))
 			{
-				FD_CLR(clients[i].socket, &writes);
 				CLOSESOCKET(clients[i].socket);
 				clients[i].request._req.clear();
 				clients[i].request.body.clear();
