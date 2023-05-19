@@ -11,6 +11,7 @@ class Request {
 		string		method;
 		string		path;
 		string		_req;
+		string		query_str;
 		string		http_version;
 		Location	_location;
 		mapstring	_error_page;

@@ -10,7 +10,8 @@ CPP_FILES = webserv.cpp\
 			 config/server.cpp\
 			 response/response.cpp\
 			 response/getmethod.cpp\
-			 response/deletemethod.cpp
+			 response/deletemethod.cpp\
+			 cgi-bin/test.cpp
 
 all : $(NAME)
 

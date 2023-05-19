@@ -58,6 +58,7 @@ int Location::location_elements(const string &element)
 	location_ele["upload"] = "";
 	location_ele["return"] = "";
 	location_ele["upload"] = "";
+	location_ele["cgi"] = ""; // I add CGI to location elemets ;)
 	if(location_ele.find(element) != location_ele.end())
 		return 1;
 	return 0;
@@ -73,6 +74,22 @@ void	Location::check_validity()
 			exit(1);
 		}
 	}
+	// check if the CGI is on or not
+	for (mapstring::iterator it = _elements.begin(); it != _elements.end(); it++)
+	{
+		if ((*it).first == "cgi" && (*it).second == "on")
+			set_CgiFlag(1);
+	}
+}
+
+void	Location::set_CgiFlag(int a)
+{
+	_cgiFlag = a;
+}
+
+int		Location::get_CgiFlag()
+{
+	return _cgiFlag;
 }
 
 void	Location::set_real(int a)
@@ -102,6 +119,7 @@ void	Location::location_fill(std::ifstream &ifs, string &line)
 	int allowed = 0;
 
 	std::getline(ifs, line);
+	_cgiFlag = 0;// init cgi flag
 	_real = 1;
 	word = get_words(line,vector);
 	if (word != "{" || vector.size() >= 1)
