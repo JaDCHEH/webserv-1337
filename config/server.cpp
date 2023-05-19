@@ -185,7 +185,6 @@ void	Server::recieve_cnx()
 	// std::cout << clients.size() << std::endl;
 	for (size_t i = 0; i < clients.size(); i++)
 	{
-		std::cout << clients.size() <<" "<< i << std::endl;
 		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
 		{
 			buffer.resize(2000);
