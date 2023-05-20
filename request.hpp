@@ -23,6 +23,8 @@ class Request {
 		std::string body;
 		mapstring	headers;
 		int			socket;
+		string		getHeader(string &key);
+
 };
 
 #endif

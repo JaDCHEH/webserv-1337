@@ -88,6 +88,14 @@ void parse(Request &server, string request)
 	server._amount_written = 0;
 }
 
+string	Request::getHeader(string &key)
+{
+	mapstring::iterator it = headers.find(key);
+    if (it != headers.end())
+        return it->second;
+	return "";
+}
+
 int serv_elements(string element)
 {
 	std::map<string, string> serv_ele;
