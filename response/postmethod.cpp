@@ -2,19 +2,29 @@
 
 int	response::Post_method(Request &Request)
 {
-	string fullpath = Request._location.get_element("root") + Request.path;
-	DIR *dir = opendir(fullpath.c_str());
-	if (dir)
+	if (Request._location.get_element("upload") == "on")
 	{
-		closedir(dir);
-		if (fullpath.back() != '/')
+		if (Request.getHeader("File-Name") != "")
 		{
-			Request.path += '/';
-			return redirection(Request, 1);
+			std::ofstream file(Request._location.get_element("upload_dir")
+				+ Request.getHeader("File_Name") + get_extention(Request.getHeader("Content-Type")));
+			file << Request.body;
+			return simple_response(Request, "201");
+		}
+		else
+		{
+			std::srand(time(NULL));
+			string name = std::to_string(rand() / 5);
+			std::ofstream file(Request._location.get_element("upload_dir")
+				+ name + get_extention(Request.getHeader("Content-Type")));
+			file << Request.body;
+			return simple_response(Request, "201");
 		}
 	}
-	else
+	else 
 	{
+		string fullpath = Request._location.get_element("root") + Request.path;
+//		DIR *dir = opendir(fullpath.c_str());
 		std::ofstream file(fullpath);
 		if (!file)
 			return simple_response(Request, "403");

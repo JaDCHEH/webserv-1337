@@ -5,13 +5,14 @@ CC = @c++
 CFLAGS =  -Wall -Wextra -Werror -std=c++98 
 
 CPP_FILES = webserv.cpp\
-			 config/config.cpp\
-			 config/Location.cpp\
-			 config/server.cpp\
-			 response/response.cpp\
-			 response/getmethod.cpp\
-			 response/deletemethod.cpp\
-			 cgi-bin/test.cpp
+			config/config.cpp\
+			config/Location.cpp\
+			config/server.cpp\
+			response/response.cpp\
+			response/getmethod.cpp\
+			response/deletemethod.cpp\
+			response/postmethod.cpp\
+			cgi-bin/test.cpp
 
 all : $(NAME)
 

@@ -61,7 +61,7 @@ string	response::get_extention(string content_type)
 	mapstring::iterator it = _extention_map.find(content_type);
 	if (it != _extention_map.end())
 		return it->second;
-	return "bin";
+	return ".bin";
 }
 
 void	response::reset_values()
@@ -149,7 +149,7 @@ int	response::Create_response(Request & Request, string code)
 		return Get_method(Request);
 	else if (Request.method == "DELETE")
 		return Delete_method(Request);
-	// else if (Request.method == "POST")
-	// 	return Post_method(Request);
+	else if (Request.method == "POST")
+	 	return Post_method(Request);
 	return 0;
 }

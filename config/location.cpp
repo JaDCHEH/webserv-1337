@@ -58,6 +58,7 @@ int Location::location_elements(const string &element)
 	location_ele["upload"] = "";
 	location_ele["return"] = "";
 	location_ele["upload"] = "";
+	location_ele["upload_dir"] = "";
 	location_ele["cgi"] = ""; // I add CGI to location elemets ;)
 	if(location_ele.find(element) != location_ele.end())
 		return 1;
@@ -110,6 +111,10 @@ void Location::must_fill(const string &root)
 		_elements["auto_index"] = "off";
 	if (_elements.find("upload") == _elements.end())
 		_elements["upload"] = "off";
+	if (_elements.find("upload_dir") == _elements.end())
+		_elements["upload_dir"] = "./upload";
+	if (_elements["upload_dir"].back() != '/')
+		_elements["upload_dir"] += "/";
 }
 
 void	Location::location_fill(std::ifstream &ifs, string &line)

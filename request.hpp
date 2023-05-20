@@ -24,7 +24,6 @@ class Request {
 		mapstring	headers;
 		int			socket;
 		string		getHeader(string &key);
-
 };
 
 #endif

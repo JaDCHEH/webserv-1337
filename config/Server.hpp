@@ -19,6 +19,7 @@ class Request {
 		int			_first;
 		size_t		_size_to_write;
 		size_t		_amount_written;
+		size_t		_size_recv;
 		string		get_error_page(string code);
 		int			_fd;
 		int			_buffer_state;
@@ -28,6 +29,7 @@ class Request {
 		string		host;
 		string		body;
 		mapstring	headers;
+		string		getHeader(string key);
 };
 
 struct Client

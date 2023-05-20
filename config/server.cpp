@@ -59,7 +59,6 @@ void parse(Request &server, string request)
 	// Create a Server object to hold the parsed Request data
 	// Extract the HTTP method, path, and version from the Request
 	iss >> server.method >> server.path >> server.http_version;
-
 	// Filling the query string CGI
 	if (server.path.find("?") != std::string::npos)
 	{
@@ -72,6 +71,10 @@ void parse(Request &server, string request)
 	while (std::getline(iss, header_key, ':') && std::getline(iss, header_value, '\r'))
 	{
 		iss.ignore(1); // ignore newline character
+		while (header_key.front() == '\n' || header_key.front() == '\r')
+			header_key = header_key.substr(1);
+		while (header_value.front() == ' ')
+			header_value = header_value.substr(1);
 		server.headers[header_key] = header_value;
 	}
 	if (server.method == "POST")
@@ -81,6 +84,7 @@ void parse(Request &server, string request)
 	}
 	// std::cout << "check code : " << server.code << std::endl;
 	// Extract the body of the Request
+	std::cout << request.size() << std::endl;
 	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	// Return the parsed Server object
 	server._buffer_state = 0;
@@ -88,7 +92,7 @@ void parse(Request &server, string request)
 	server._amount_written = 0;
 }
 
-string	Request::getHeader(string &key)
+string	Request::getHeader(string key)
 {
 	mapstring::iterator it = headers.find(key);
     if (it != headers.end())
@@ -173,6 +177,8 @@ void	Server::recieve_cnx()
 		client.request._amount_written = 0;
 		client.request._size_to_write = 0;
 		client.request._buffer_state = 0;
+		client.request._size_recv = 0;
+		client.request._req = "";
 		client.address_length = sizeof(client.address);
 		SOCKET socket_client = accept(socket_listen,
 									  (struct sockaddr *)&client.address, &client.address_length);
@@ -210,7 +216,9 @@ void	Server::recieve_cnx()
 				i--;
 				continue;
 			}
+			clients[i].request._size_recv += bytes_received;
 			clients[i].request._req += buffer;
+			clients[i].request._req.resize(clients[i].request._size_recv);
 			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
 			{
 				parse(clients[i].request, clients[i].request._req);
