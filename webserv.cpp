@@ -24,29 +24,32 @@ int main(int ac, char **av)
 	while (1)
 	{
 		int max_socket = -1;
-		FD_ZERO(&Server::reads);
-		FD_ZERO(&Server::writes);
+		fd_set	reads;
+		fd_set	writes;
+
+		FD_ZERO(&reads);
+		FD_ZERO(&writes);
 		for (size_t i = 0; i < conf._servers.size(); i++)
 		{
-			FD_SET(conf._servers[i].getSocket(), &Server::reads);
+			FD_SET(conf._servers[i].getSocket(), &reads);
 			if (conf._servers[i].getSocket() > max_socket)
 				max_socket = conf._servers[i].getSocket();
 			for (size_t j = 0; j < conf._servers[i].clients.size(); j++)
 			{
 				if (conf._servers[i].clients[j].isSending == true)
-					FD_SET(conf._servers[i].clients[j].socket, &Server::reads);
+					FD_SET(conf._servers[i].clients[j].socket, &reads);
 				else
-					FD_SET(conf._servers[i].clients[j].socket, &Server::writes);
+					FD_SET(conf._servers[i].clients[j].socket, &writes);
 				if (conf._servers[i].clients[j].socket > max_socket)
 					max_socket = conf._servers[i].clients[j].socket;
 			}
 		}
-		if (select(max_socket + 1, &Server::reads, &Server::writes, 0, 0) == -1)
+		if (select(max_socket + 1, &reads, &writes, 0, 0) == -1)
 		{
 			std::cout << "Failed to select. errno: "
 					  << " " << strerror(errno) << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		conf.setup_cnx();
+		conf.setup_cnx(reads, writes);
 	}
 }

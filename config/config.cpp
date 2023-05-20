@@ -8,10 +8,10 @@ void	config::setup_sockets()
 		_servers[i].setting_PORT();
 }
 
-void	config::setup_cnx()
+void	config::setup_cnx(fd_set &reads, fd_set &writes)
 {
 	for (size_t i = 0; i < _servers.size(); i++)
-		_servers[i].recieve_cnx();
+		_servers[i].recieve_cnx(reads, writes);
 }
 
 void	config::conf(string conf)

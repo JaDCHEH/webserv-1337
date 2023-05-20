@@ -11,7 +11,7 @@ class config
 		void	conf(string conf);
 		Server	&matchname(string &servername);
 		void	setup_sockets();
-		void	setup_cnx();
+		void	setup_cnx(fd_set &reads, fd_set &writes);
 		void	must_fill();
 		servervect	_servers;
 		stringvect	_ports;

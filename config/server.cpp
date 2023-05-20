@@ -1,8 +1,6 @@
 #include "Server.hpp"
 #include "../response/response.hpp"
 
-fd_set Server::reads;
-fd_set Server::writes;
 // Checks if the URI contains a non allowed character c_400
 int isValidRequestURI(const std::string &uri)
 {
@@ -84,7 +82,6 @@ void parse(Request &server, string request)
 	}
 	// std::cout << "check code : " << server.code << std::endl;
 	// Extract the body of the Request
-	std::cout << request.size() << std::endl;
 	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	// Return the parsed Server object
 	server._buffer_state = 0;
@@ -153,7 +150,7 @@ void	Server::setting_PORT()
 	}
 
 	std::cout << "Listening..." << std::endl;
-	if (listen(socket_listen, 10) < 0)
+	if (listen(socket_listen, 1024) < 0)
 	{
 		std::cout << "Failed to listen on socket."
 				  << " " << strerror(errno) << std::endl;
@@ -161,7 +158,7 @@ void	Server::setting_PORT()
 	}
 }
 
-void	Server::recieve_cnx()
+void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
 {
 	res = new response;
 	res->init();
@@ -197,56 +194,62 @@ void	Server::recieve_cnx()
 					NI_NUMERICHOST);
 	}
 	// std::cout << clients.size() << std::endl;
-	for (size_t i = 0; i < clients.size(); i++)
+
+	std::vector<Client>::iterator it = clients.begin();
+	std::vector<Client>::iterator end = clients.end();
+	while (it != end)
 	{
-		if (clients[i].isSending && FD_ISSET(clients[i].socket, &reads))
+		if (it->isSending && FD_ISSET(it->socket, &reads))
 		{
 			buffer.resize(2000);
-			int bytes_received = recv(clients[i].socket, &buffer[0], 2000, 0);
+			int bytes_received = recv(it->socket, &buffer[0], 2000, 0);
 			if (bytes_received < 1)
 			{
 				if (bytes_received == 0)
 					std::cout << "Connexion got dropped by the client! " << strerror(errno) << std::endl;
 				else
 					std::cout << "Disconnected errno : " << strerror(errno) << std::endl;
-				CLOSESOCKET(clients[i].socket);
-				clients[i].request._req.clear();
-				clients[i].request.body.clear();
-				clients.erase(clients.begin() + i);
-				i--;
+				CLOSESOCKET(it->socket);
+				it->request._req.clear();
+				it->request.body.clear();
+				// clients.erase(clients.begin() + i);
+				it = clients.erase(it);
+				end = clients.end();
 				continue;
 			}
-			clients[i].request._size_recv += bytes_received;
-			clients[i].request._req += buffer;
-			clients[i].request._req.resize(clients[i].request._size_recv);
-			if (recv(clients[i].socket, &buffer[0], 2000, MSG_PEEK) <= 0)
+			it->request._size_recv += bytes_received;
+			it->request._req += buffer;
+			it->request._req.resize(it->request._size_recv);
+			if (recv(it->socket, &buffer[0], 1, MSG_PEEK) <= 0)
 			{
-				parse(clients[i].request, clients[i].request._req);
-				clients[i].isSending = false;
-				clients[i].request.socket = clients[i].socket;
-				clients[i].request._error_page = _error_page;
-				clients[i].request._location = matchlocation(clients[i].request.path);
-				clients[i].request.code = "";
-				if (isValidRequestURI(clients[i].request.path))
-					clients[i].request.code = "400";
-				else if (checkUriLength(clients[i].request.path))
-					clients[i].request.code = "414";
-				else if (checkRequestBodySize(clients[i].request.body, std::stoul(get_element("max_body_size"))))
-					clients[i].request.code = "413";
+				it->isSending = false;
 			}
 			buffer.clear();
 		}
-		else if (FD_ISSET(clients[i].socket, &writes))
+		else if (FD_ISSET(it->socket, &writes))
 		{
-			if (!res->Create_response(clients[i].request, clients[i].request.code))
+			parse(it->request, it->request._req);
+			it->request.socket = it->socket;
+			it->request._error_page = _error_page;
+			it->request._location = matchlocation(it->request.path);
+			it->request.code = "";
+			if (isValidRequestURI(it->request.path))
+				it->request.code = "400";
+			else if (checkUriLength(it->request.path))
+				it->request.code = "414";
+			else if (checkRequestBodySize(it->request.body, std::stoul(get_element("max_body_size"))))
+				it->request.code = "413";
+			if (!res->Create_response(it->request, it->request.code))
 			{
-				CLOSESOCKET(clients[i].socket);
-				clients[i].request._req.clear();
-				clients[i].request.body.clear();
-				clients.erase(clients.begin() + i);
-				i--;
+				CLOSESOCKET(it->socket);
+				it->request._req.clear();
+				it->request.body.clear();
+				it = clients.erase(it);
+				end = clients.end();
+				continue;
 			}
 		}
+		++it;
 	}
 	delete(res);
 }

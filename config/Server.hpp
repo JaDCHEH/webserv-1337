@@ -56,15 +56,13 @@ class Server
 		int						r;
 	public:
 		std::vector<Client>		clients;
-		static	fd_set			reads;
-		static	fd_set			writes;
 		void					reset();
 		int						find_element(string key);
 		void					set_element(string key, string &value);
 		string 					get_element(string key);
 		Location				matchlocation(string &location);
 		void					setting_PORT();
-		void					recieve_cnx();
+		void					recieve_cnx(fd_set &reads, fd_set &writes);
 		Server					server_fill(std::ifstream &ifs, string &line);
 		void					must_fill();
 		int						getSocket();
