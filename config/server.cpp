@@ -248,7 +248,6 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
 				CLOSESOCKET(it->socket);
 				it->request._req.clear();
 				it->request.body.clear();
-				// clients.erase(clients.begin() + i);
 				it = clients.erase(it);
 				end = clients.end();
 				continue;
@@ -269,7 +268,7 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
 					it->request.code = "414";
 				else if (checkRequestBodySize(it->request.body, std::stoul(get_element("max_body_size"))))
 					it->request.code = "413";
-					it->isSending = false;
+				it->isSending = false;
 			}
 			buffer.clear();
 		}

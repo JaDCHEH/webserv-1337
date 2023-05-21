@@ -53,7 +53,7 @@ int Location::location_elements(const string &element)
 	mapstring location_ele;
 
 	location_ele["index"] = "";
-	location_ele["autoindex"] = "";
+	location_ele["auto_index"] = "";
 	location_ele["root"] = "";
 	location_ele["upload"] = "";
 	location_ele["return"] = "";

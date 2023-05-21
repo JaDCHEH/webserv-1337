@@ -128,17 +128,17 @@ int	response::Get_method(Request & Request)
 				handle_cgi(Request, fullpath + Request._location.get_element("index"));
 			return get_file(Request, fullpath + Request._location.get_element("index"));
 		}
-		else if (Request._location.get_element("autoindex") == "on")
+		else if (Request._location.get_element("auto_index") == "on")
 			return auto_index(Request, fullpath);
-		else if (Request._location.get_element("autoindex") == "off")
+		else if (Request._location.get_element("auto_index") == "off")
 			return simple_response(Request, "403");
 	}
+	
 	int fd = open(fullpath.c_str(), O_RDONLY);
 	if (fd >= 0)
 	{
 		close(fd);
 		return get_file(Request, fullpath);
 	}
-	else
-		return simple_response(Request, "404");
+	return simple_response(Request, "404");
 }

@@ -61,7 +61,7 @@ string	response::get_extention(string content_type)
 	mapstring::iterator it = _extention_map.find(content_type);
 	if (it != _extention_map.end())
 		return it->second;
-	return ".bin";
+	return "";
 }
 
 void	response::reset_values()
@@ -137,10 +137,7 @@ int	response::Create_response(Request & Request, string code)
 	if (code != "")
 		return simple_response (Request, code);
 	else if (Request._location.get_real() == -1)
-	{
-		std::cout<<"jahna"<<std::endl;
 		return simple_response (Request, "404");
-	}
 	else if (Request._location.find_element("return"))
 		return redirection (Request, 0);
 	else if (!Request._location.is_method_allowed(Request.method))
