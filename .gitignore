@@ -4,3 +4,4 @@ webserv
 database
 .vscode
 .DS_Store
+./upload/*

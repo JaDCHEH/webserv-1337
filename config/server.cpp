@@ -26,28 +26,64 @@ int checkRequestBodySize(const std::string &body, size_t max_allowed)
 		return (413); // c_413 Entity too large
 	return (0);
 }
+size_t convert(string num) {
+    int len = num.length();
+    int base = 1;
+    int temp = 0;
+    for (int i = len - 1; i >= 0; i--) {
+        if (num[i] >= '0' && num[i] <= '9') {
+            temp += (num[i] - '0') * base;
+            base = base * 16;
+        }
+        else if (num[i] >= 'a' && num[i] <= 'f') {
+            temp += (num[i] - 'a' + 10) * base;
+            base = base * 16;
+        }
+        else
+            return (0);
+    }
+    return temp;
+}
 
-void	post_parse(mapstring &mas, Request & server)
+string	parsingChunked(string new_req)
+{
+	std::istringstream iss(new_req);
+    string s, str;
+	size_t str_length;
+    while (std::getline(iss, str, '\r')) {
+        iss.ignore(1); // to ignore "\n"
+		if (str[0] == '0') // 0 means no more line to read
+			break ;
+		str_length = convert(str);// convert length from hex to decimal
+        string body;
+		body.resize(str_length);
+		iss.read(&body[0], str_length);
+		s += body;
+		body.clear();
+    }
+	return s;
+}
+
+void	post_parse(Request & server)
 {
 	string key, value;
 	int	tflag = 0, cflag = 0;
-	for (mapstring::iterator it = mas.begin(); it != mas.end(); it++)
+
+	if (server.getHeader("Transfer-Encoding") == "chunked")
 	{
-		if ((*it).first == "\r\nTransfer-Encoding")
-		{
-			tflag = 1;
-			if ((*it).second == " chunked")
-				server.code = "valid"; // Valid request
-			else
-				server.code = "501";// "501 Not Implemented" If the Transfer-Encoding header specifies an encoding mechanism other than "chunked"
-		}
-		if ((*it).first == "Content-Length")
-			cflag = 1;
+		tflag = 1;
+		server.body = parsingChunked(server.body);
+		server.code = ""; // Valid request
 	}
+	else if (server.getHeader("Transfer-Encoding") != "")
+	{
+		server.code = "501";// "501 Not Implemented" If the Transfer-Encoding header specifies an encoding mechanism other than "chunked"
+		return ;
+	}
+	if (server.getHeader("Content-Length") != "")
+		cflag = 1;
 	if (!tflag && !cflag)
 		server.code = "400"; // "Bad request" If both the Content-Length and Transfer-Encoding headers are missing or not specified
-	else if (!tflag || !cflag)
-		server.code = "411"; // "Length Required" If either the Content-Length or Transfer-Encoding header is missing or not specified
 }
 
 void parse(Request &server, string request)
@@ -57,6 +93,7 @@ void parse(Request &server, string request)
 	// Create a Server object to hold the parsed Request data
 	// Extract the HTTP method, path, and version from the Request
 	iss >> server.method >> server.path >> server.http_version;
+	
 	// Filling the query string CGI
 	if (server.path.find("?") != std::string::npos)
 	{
@@ -75,14 +112,13 @@ void parse(Request &server, string request)
 			header_value = header_value.substr(1);
 		server.headers[header_key] = header_value;
 	}
+	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	if (server.method == "POST")
 	{
-		post_parse(server.headers, server);
-
+		post_parse(server);
 	}
 	// std::cout << "check code : " << server.code << std::endl;
 	// Extract the body of the Request
-	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	// Return the parsed Server object
 	server._buffer_state = 0;
 	server._first = 0;
@@ -222,23 +258,23 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
 			it->request._req.resize(it->request._size_recv);
 			if (recv(it->socket, &buffer[0], 1, MSG_PEEK) <= 0)
 			{
-				it->isSending = false;
+				it->request.code = "";
+				parse(it->request, it->request._req);
+				it->request.socket = it->socket;
+				it->request._error_page = _error_page;
+				it->request._location = matchlocation(it->request.path);
+				if (isValidRequestURI(it->request.path))
+					it->request.code = "400";
+				else if (checkUriLength(it->request.path))
+					it->request.code = "414";
+				else if (checkRequestBodySize(it->request.body, std::stoul(get_element("max_body_size"))))
+					it->request.code = "413";
+					it->isSending = false;
 			}
 			buffer.clear();
 		}
 		else if (FD_ISSET(it->socket, &writes))
 		{
-			parse(it->request, it->request._req);
-			it->request.socket = it->socket;
-			it->request._error_page = _error_page;
-			it->request._location = matchlocation(it->request.path);
-			it->request.code = "";
-			if (isValidRequestURI(it->request.path))
-				it->request.code = "400";
-			else if (checkUriLength(it->request.path))
-				it->request.code = "414";
-			else if (checkRequestBodySize(it->request.body, std::stoul(get_element("max_body_size"))))
-				it->request.code = "413";
 			if (!res->Create_response(it->request, it->request.code))
 			{
 				CLOSESOCKET(it->socket);

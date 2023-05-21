@@ -1,4 +1,4 @@
-#include "cgi.hpp"
+    #include "cgi.hpp"
 
 char** convertMapToCharArray(mapstring& map) {
     // Create a char** array to hold the converted data
