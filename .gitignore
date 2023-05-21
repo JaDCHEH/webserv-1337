@@ -3,3 +3,4 @@ webserv
 ./config/dafault.conf
 database
 .vscode
+.DS_Store
