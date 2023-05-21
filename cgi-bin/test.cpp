@@ -1,50 +1,71 @@
-#include "../response/response.hpp"
+#include "cgi.hpp"
 
-#define MAX_INPUT 1024
-
-void    set_env(mapstring mas)
-{
-    string test = "";
-
-    for (mapstring::iterator it = mas.begin(); it != mas.end(); it++)
-    {
-        if ((*it).first == "REQUEST_METHOD")
-            std::cout << (*it).first << " " << (*it).second << std::endl;
-        else if ((*it).first == "QUERY_STRING")
-            std::cout << (*it).first << " " << (*it).second << std::endl;
-        else if ((*it).first == "Referer")
-            test = (*it).second;
+char** convertMapToCharArray(mapstring& map) {
+    // Create a char** array to hold the converted data
+    char** charArray = new char*[map.size() + 1]; // +1 for the terminating nullptr
+    
+    // Convert each key-value pair to "KEY=VALUE" format
+    size_t i = 0;
+    for (mapstring::iterator iter = map.begin(); iter != map.end(); ++iter) {
+        string envVar = iter->first + "=" + iter->second;
+        // Allocate memory for the current environment variable
+        charArray[i] = new char[envVar.size() + 1];
+        // Copy the environment variable string to charArray
+        std::strcpy(charArray[i], envVar.c_str());
+        ++i;
     }
-    if (test != "")
-        std::cout << "fawsss" << test << std::endl;
+    // Set the last element of the array as nullptr
+    charArray[map.size()] = NULL;
+    return charArray;
+}
+
+void    fill_env( string file, Request &request, mapstring &_env) {
+    std::ifstream Myfile(file);
+    if (Myfile)
+    {
+        string filename = file.substr(file.rfind('/') + 1);
+        std::cout << "filename : " << filename << std::endl;
+        _env["SCRIPT_NAME"] = filename;
+    }
+    std::cout << "request method : " << request.method << std::endl;
+    _env["REQUEST_METHOD"] = request.method;
+    std::cout << "file path : " << file << std::endl;
+    _env["SCRIPT_FILENAME"] = file;
+    if (request.method == "GET") {
+        std::cout << "query string : " << request.query_str << std::endl;
+        _env["QUERY_STRING"] = request.query_str;
+    }
 }
 
 string response::handle_cgi(Request &request, string file) {
     char buf[1024];
-    string resp;
-    char envp[MAX_INPUT];
+    mapstring   _env;
+    string resp, execut = request._location.get_element("root") + "./cgi-bin/php-cgi";
     int fd[2];
-    char *env[] = { envp, NULL };
-    // char input[MAX_INPUT];
-    char* argv[] = {(char *)file.c_str(), NULL };
-    // Set environment variables for the CGI script
-    set_env(request.headers);
-    sprintf(envp, "REQUEST_METHOD=%s", request.method.c_str());
-    putenv(envp);
-    if (strcasecmp(request.method.c_str(), "GET") == 0) {
-        sprintf(envp, "QUERY_STRING=%s", request.query_str.c_str());
-        putenv(envp);
-    }
+    char **env;
+    char **argv = new char *[2];
 
+    if (request.method == "POST")
+    {
+        std::ofstream   BodyFile("body");
+        BodyFile << request.body;
+    }
+    // Set environment variables for the CGI script
+    fill_env(file, request, _env);
+    env = convertMapToCharArray(_env);
+    argv[0] = strdup("/bin/ls");
+    // argv[1] = strdup(file.c_str());
+    argv[2] = NULL;
     // create a new process to execute the CGI script
-    int pid = fork();
+   int pid = fork();
     pipe(fd);
+    std::cout << "time for creating new processes." << std::endl;
     if (pid == 0) {
         dup2(fd[0], 0);
-        dup2(fd[1], 1);
+        // dup2(fd[1], 1);
         close(fd[0]);
         close(fd[1]);
-        execve("./cgi-bin/php-cgi", argv, env);
+        execve("/bin/ls", argv, NULL);
         // if execve returns, it means there was an error
         perror("execve failed");
         exit(1); 
@@ -53,19 +74,9 @@ string response::handle_cgi(Request &request, string file) {
         // wait for the child process to finish
         close(fd[1]);
         close(fd[0]);
-        int status;
-        int recv;
-        recv = read(fd[0], &buf, 1024);
-        while(recv > 0)
-        {
-            std::cout << "asdfasdf : " << buf << std::endl;
+        while(read(fd[0], &buf, 1024) > 0)
             resp += buf;
-            recv = read(fd[1], &buf, 1024);
-        }
-        if (WIFEXITED(status)) {
-            // int exit_status = WEXITSTATUS(status);
-            // process the exit status if necessary
-        }
     }
+    std::cout << "resp : " << resp << std::endl;
     return resp;
 }
