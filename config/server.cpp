@@ -182,7 +182,7 @@ void	Server::setting_PORT()
 	if (bind(socket_listen, bind_address->ai_addr, bind_address->ai_addrlen))
 	{
 		std::cout << "Failed to bind to port: " << PORT << " " << strerror(errno) << std::endl;
-		exit(EXIT_FAILURE);
+	//	exit(EXIT_FAILURE);
 	}
 
 	std::cout << "Listening..." << std::endl;
@@ -194,7 +194,28 @@ void	Server::setting_PORT()
 	}
 }
 
-void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
+Server	matchname(string servername, std::vector<Server> _servers)
+{
+	servervect::iterator it = _servers.begin();
+	servervect::iterator temp = _servers.begin();
+	int i = 0;
+	servername = servername.substr(0, servername.find(':'));
+	while (it != _servers.end())
+	{
+		if(it->find_element("servername") && !i){
+			i = 1;
+			temp = it;
+		}
+		else{
+			if (it->get_element("servername") == servername)
+				return *it;
+		}
+		it++;
+	}
+	return *temp;
+}
+
+void	Server::recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> servers)
 {
 	res = new response;
 	res->init();
@@ -237,6 +258,7 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
 	{
 		if (it->isSending && FD_ISSET(it->socket, &reads))
 		{
+			
 			buffer.resize(2000);
 			int bytes_received = recv(it->socket, &buffer[0], 2000, 0);
 			if (bytes_received < 1)
@@ -257,16 +279,18 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes)
 			it->request._req.resize(it->request._size_recv);
 			if (recv(it->socket, &buffer[0], 1, MSG_PEEK) <= 0)
 			{
+				Server temp;
 				it->request.code = "";
 				parse(it->request, it->request._req);
 				it->request.socket = it->socket;
 				it->request._error_page = _error_page;
-				it->request._location = matchlocation(it->request.path);
+				temp = matchname(it->request.getHeader("Host"), servers);
+				it->request._location = temp.matchlocation(it->request.path);
 				if (isValidRequestURI(it->request.path))
 					it->request.code = "400";
 				else if (checkUriLength(it->request.path))
 					it->request.code = "414";
-				else if (checkRequestBodySize(it->request.body, std::stoul(get_element("max_body_size"))))
+				else if (checkRequestBodySize(it->request.body, std::stoul(temp.get_element("max_body_size"))))
 					it->request.code = "413";
 				it->isSending = false;
 			}

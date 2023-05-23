@@ -62,7 +62,7 @@ class Server
 		string 					get_element(string key);
 		Location				matchlocation(string &location);
 		void					setting_PORT();
-		void					recieve_cnx(fd_set &reads, fd_set &writes);
+		void					recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> servers);
 		Server					server_fill(std::ifstream &ifs, string &line);
 		void					must_fill();
 		int						getSocket();
