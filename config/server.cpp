@@ -203,7 +203,7 @@ Server	matchname(Request &req, string servername, std::vector<Server> _servers)
 	string port = servername.substr(servername.find(':') + 1);
 	while (it != _servers.end())
 	{
-		if(it->find_element("servername") && it->get_element("listen") == port && !def){
+		if(it->get_element("listen") == port && !def){
 			def = 1;
 			temp = it;
 		}
