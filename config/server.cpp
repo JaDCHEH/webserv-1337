@@ -194,24 +194,27 @@ void	Server::setting_PORT()
 	}
 }
 
-Server	matchname(string servername, std::vector<Server> _servers)
+Server	matchname(Request &req, string servername, std::vector<Server> _servers)
 {
 	servervect::iterator it = _servers.begin();
 	servervect::iterator temp = _servers.begin();
-	int i = 0;
-	servername = servername.substr(0, servername.find(':'));
+	int def = 0;
+	string name = servername.substr(0, servername.find(':'));
+	string port = servername.substr(servername.find(':') + 1);
 	while (it != _servers.end())
 	{
-		if(it->find_element("servername") && !i){
-			i = 1;
+		if(it->find_element("servername") && it->get_element("listen") == port && !def){
+			def = 1;
 			temp = it;
 		}
 		else{
-			if (it->get_element("servername") == servername)
+			if (it->get_element("servername") == name && it->get_element("listen") == port)
 				return *it;
 		}
 		it++;
 	}
+	if (!def)
+		req.code = "404";
 	return *temp;
 }
 
@@ -284,7 +287,7 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> serv
 				parse(it->request, it->request._req);
 				it->request.socket = it->socket;
 				it->request._error_page = _error_page;
-				temp = matchname(it->request.getHeader("Host"), servers);
+				temp = matchname(it->request, it->request.getHeader("Host"), servers);
 				it->request._location = temp.matchlocation(it->request.path);
 				if (isValidRequestURI(it->request.path))
 					it->request.code = "400";
