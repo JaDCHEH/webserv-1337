@@ -113,6 +113,9 @@ int	response::Get_method(Request & Request)
 {
 	string fullpath = Request._location.get_element("root") + Request.path;
 	DIR *dir = opendir(fullpath.c_str());
+	// adding CGI if we found dir
+	if (Request._location.get_CgiFlag())
+		return handle_cgi(Request, fullpath + Request._location.get_element("index"));
 	if (dir)
 	{
 		closedir(dir);
@@ -122,12 +125,7 @@ int	response::Get_method(Request & Request)
 			return redirection(Request, 1);
 		}
 		else if (Request._location.get_element("index") != "")
-		{
-			// adding CGI if we found dir
-			if (Request._location.get_CgiFlag())
-				handle_cgi(Request, fullpath + Request._location.get_element("index"));
 			return get_file(Request, fullpath + Request._location.get_element("index"));
-		}
 		else if (Request._location.get_element("auto_index") == "on")
 			return auto_index(Request, fullpath);
 		else if (Request._location.get_element("auto_index") == "off")
