@@ -114,8 +114,10 @@ int	response::Get_method(Request & Request)
 	string fullpath = Request._location.get_element("root") + Request.path;
 	DIR *dir = opendir(fullpath.c_str());
 	// adding CGI if we found dir
-	if (Request._location.get_CgiFlag())
+	if (Request._location.get_CgiFlag() && dir)
 		return handle_cgi(Request, fullpath + Request._location.get_element("index"));
+	else if (Request._location.get_CgiFlag())
+		return handle_cgi(Request, fullpath);
 	if (dir)
 	{
 		closedir(dir);

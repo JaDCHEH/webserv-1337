@@ -2,18 +2,22 @@
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
     $avatar = $_FILES['avatar'];
+    if (!isset($avatar))
+    {
+        echo 'there is a problem here!';
+        exit(1);
+    }
     $avatar_name = $avatar['name'];
     $avatar_tmp_name = $avatar['tmp_name'];
     $avatar_size = $avatar['size'];
     $avatar_error = $avatar['error'];
-
+    
     $avatar_ext = explode('.', $avatar_name);
     $avatar_actual_ext = strtolower(end($avatar_ext));
-
+    
     $allowed = array('jpg', 'jpeg', 'png');
-
+    
     if (in_array($avatar_actual_ext, $allowed)) {
         if ($avatar_error === 0) {
             if ($avatar_size < 1000000) {
@@ -53,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <center><?php echo $_SESSION['email']; ?></center><br/><br/>
             <center><a href="?logout">Logout</a></center>
         </p>
-    <?php else: ?>
+        <?php else: ?>
         <form method="post" enctype="multipart/form-data">
             <input type="text" name="name" placeholder="Name" />
             <input type="text" name="email" placeholder="Email" />

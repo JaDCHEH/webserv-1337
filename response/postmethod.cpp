@@ -21,14 +21,7 @@ int	response::Post_method(Request &Request)
 			return simple_response(Request, "201");
 		}
 	}
-	else 
-	{
-		string fullpath = Request._location.get_element("root") + Request.path;
-//		DIR *dir = opendir(fullpath.c_str());
-		std::ofstream file(fullpath);
-		if (!file)
-			return simple_response(Request, "403");
-		file << Request.body;
-		return simple_response(Request, "201");
-	}
+	else // CGI part // I need to check if file or dir 
+		return handle_cgi(Request, Request._location.get_element("root") + Request.path + Request._location.get_element("index"));
+	return (0);
 }
