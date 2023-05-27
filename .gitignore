@@ -1,6 +1,6 @@
 a
 webserv
-./config/dafault.conf
+default.conf
 database
 .vscode
 .DS_Store

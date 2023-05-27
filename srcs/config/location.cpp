@@ -1,4 +1,4 @@
-#include "Location.hpp"
+#include "../../includes/Config/Location.hpp"
 
 string	get_words(string &line, stringvect& vector)
 {
@@ -71,7 +71,7 @@ void	Location::check_validity()
 	{
 		if ((*it) != "GET" && (*it) != "DELETE" && (*it) != "POST")
 		{
-			std::cerr << (*it) << " Unvalid method in the configuration file" << std::endl;
+			std::cerr << (*it) << " Unvalid method in the Configuration file" << std::endl;
 			exit(1);
 		}
 	}

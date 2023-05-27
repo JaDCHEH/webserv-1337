@@ -1,6 +1,6 @@
-#include "response.hpp"
+#include "../../includes/Response/Response.hpp"
 
-int	response::redirection(Request & Request, int flag)
+int	Response::redirection(Request & Request, int flag)
 {
 	fill_initial_line(Request.http_version, "301");
 	if (flag == 0)
@@ -15,11 +15,11 @@ int	response::redirection(Request & Request, int flag)
 	return 0;
 }
 
-int	response::get_file(Request & Request, const string &file)
+int	Response::get_file(Request & Request, const string &file)
 {
 	std::ifstream  file_stream(file);
 	if (!file_stream)
-		return simple_response(Request, "404");
+		return simple_Response(Request, "404");
 	string	buffer;
 	buffer.resize(2000);
 	int i = 0;
@@ -44,7 +44,7 @@ int	response::get_file(Request & Request, const string &file)
 	{
 		j = read(Request._fd, &buffer[0], 2000);
 		if (j < 0)
-			return simple_response(Request, "404");
+			return simple_Response(Request, "404");
 		Request._buffer += buffer;
 		buffer.clear();
 		i += j;
@@ -77,7 +77,7 @@ int	response::get_file(Request & Request, const string &file)
 	return 1;
 }
 
-int	response::auto_index(Request &request, string &path)
+int	Response::auto_index(Request &request, string &path)
 {
 	DIR *dir  = opendir(path.c_str());
 	struct dirent *ent;
@@ -109,7 +109,7 @@ int	response::auto_index(Request &request, string &path)
 	return 0;
 }
 
-int	response::Get_method(Request & Request)
+int	Response::Get_method(Request & Request)
 {
 	string fullpath = Request._location.get_element("root") + Request.path;
 	DIR *dir = opendir(fullpath.c_str());
@@ -131,7 +131,7 @@ int	response::Get_method(Request & Request)
 		else if (Request._location.get_element("auto_index") == "on")
 			return auto_index(Request, fullpath);
 		else if (Request._location.get_element("auto_index") == "off")
-			return simple_response(Request, "403");
+			return simple_Response(Request, "403");
 	}
 	
 	int fd = open(fullpath.c_str(), O_RDONLY);
@@ -140,5 +140,5 @@ int	response::Get_method(Request & Request)
 		close(fd);
 		return get_file(Request, fullpath);
 	}
-	return simple_response(Request, "404");
+	return simple_Response(Request, "404");
 }

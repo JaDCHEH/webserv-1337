@@ -79,7 +79,7 @@ void    fill_env( string file, Request &request, mapstring &_env) {
 }
 
 
-int response::handle_cgi(Request &request, string file) {
+int Response::handle_cgi(Request &request, string file) {
     char buf[1024];
     mapstring   _env;
     // int     open_file;

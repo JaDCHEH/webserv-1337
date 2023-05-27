@@ -1,7 +1,7 @@
 #ifndef CGI_HPP
 #define CGI_HPP
 
-#include "../response/response.hpp"
+#include "../includes/Response/Response.hpp"
 
 #define MAX_INPUT 1024
 

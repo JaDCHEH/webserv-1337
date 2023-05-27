@@ -1,20 +1,20 @@
-#include "config.hpp"
+#include "../../includes/Config/Config.hpp"
 #include <fstream>
 #include <iostream>
 
-void	config::setup_sockets()
+void	Config::setup_sockets()
 {
 	for (size_t i = 0; i < _servers.size(); i++)
 		_servers[i].setting_PORT();
 }
 
-void	config::setup_cnx(fd_set &reads, fd_set &writes)
+void	Config::setup_cnx(fd_set &reads, fd_set &writes)
 {
 	for (size_t i = 0; i < _servers.size(); i++)
 		_servers[i].recieve_cnx(reads, writes, _servers);
 }
 
-void	config::conf(string conf)
+void	Config::conf(string conf)
 {
 	std::ifstream ifs(conf);
 	if (!ifs)
@@ -57,7 +57,7 @@ void	config::conf(string conf)
 	must_fill();
 }
 
-void config::must_fill()
+void Config::must_fill()
 {
 	for (servervect::iterator it = _servers.begin(); it != _servers.end(); it++)
 	{
@@ -66,7 +66,7 @@ void config::must_fill()
 	}
 }
 
-Server&	config::matchname(string &servername)
+Server&	Config::matchname(string &servername)
 {
 	servervect::iterator it = _servers.begin();
 	servervect::iterator temp = _servers.begin();

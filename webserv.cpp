@@ -10,7 +10,7 @@
 /*																			*/
 /* ************************************************************************** */
 
-#include "config/config.hpp"
+#include "./includes/Config/Config.hpp"
 #include <sstream>
 
 int main(int ac, char **av)
@@ -18,7 +18,7 @@ int main(int ac, char **av)
 	signal(SIGPIPE, SIG_IGN);
 	if (ac != 2)
 		return 1;
-	config conf;
+	Config conf;
 	conf.conf(av[1]);
 	conf.setup_sockets();
 	while (1)

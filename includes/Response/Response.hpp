@@ -1,9 +1,9 @@
-#ifndef RESPONSE_HPP
-#define RESPONSE_HPP
+#ifndef Response_HPP
+#define Response_HPP
 
-#include "../config/config.hpp"
+#include "../Config/Config.hpp"
 
-class response
+class Response
 {
 private:
 	string		_initial_line;
@@ -28,13 +28,13 @@ public:
 	void	_extentions();
 	void	init();
 	int		get_file(Request &request, const string &file);
-	int		simple_response(Request &Request, string code);
+	int		simple_Response(Request &Request, string code);
 	int		redirection(Request &request, int flag);
 	int		auto_index(Request &request, string &path);
 	int		Get_method(Request &Request);
 	int 	Delete_method(Request &Request);
 	int		Post_method(Request &Request);
-	int		Create_response(Request &Request, string code);
+	int		Create_Response(Request &Request, string code);
 };
 
 #endif

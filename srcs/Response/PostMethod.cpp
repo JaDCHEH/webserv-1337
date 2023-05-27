@@ -1,6 +1,6 @@
-#include "response.hpp"
+#include "../../includes/Response/Response.hpp"
 
-int	response::Post_method(Request &Request)
+int	Response::Post_method(Request &Request)
 {
 	if (Request._location.get_element("upload") == "on")
 	{
@@ -9,7 +9,7 @@ int	response::Post_method(Request &Request)
 			std::ofstream file(Request._location.get_element("upload_dir")
 				+ Request.getHeader("File_Name") + get_extention(Request.getHeader("Content-Type")));
 			file << Request.body;
-			return simple_response(Request, "201");
+			return simple_Response(Request, "201");
 		}
 		else
 		{
@@ -18,7 +18,7 @@ int	response::Post_method(Request &Request)
 			std::ofstream file(Request._location.get_element("upload_dir")
 				+ name + get_extention(Request.getHeader("Content-Type")));
 			file << Request.body;
-			return simple_response(Request, "201");
+			return simple_Response(Request, "201");
 		}
 	}
 	else // CGI part // I need to check if file or dir 

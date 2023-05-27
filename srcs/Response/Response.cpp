@@ -1,6 +1,6 @@
-#include "response.hpp"
+#include "../../includes/Response/Response.hpp"
 
-void response::_codes()
+void Response::_codes()
 {
 	_code_map["501"] = "Not Implemented";
 	_code_map["400"] = "Bad Request";
@@ -16,7 +16,7 @@ void response::_codes()
 	_code_map["500"] = "Internal Server Error";
 }
 
-void	response::_extentions()
+void	Response::_extentions()
 {
 	_extention_map["text/html"] = ".html";
 	_extention_map["text/plain"] = ".txt";
@@ -39,14 +39,14 @@ void	response::_extentions()
 	_extention_map["application/octet-stream"] = ".bin";
 }
 
-string	response::error_page_builder(string code)
+string	Response::error_page_builder(string code)
 {
 	string page= "<!DOCTYPE html>\n<html>\n  <head>\n	<title>" + code + " - " + _code_map[code]
 		+ "</title>\n  </head>\n  <body>\n	<h1>" + code + " - " + _code_map[code] + "</h1>\n  </body>\n</html>";
 	return page;
 }
 
-string	response::get_content_type(string extention)
+string	Response::get_content_type(string extention)
 {
 	for (mapstring::iterator it = _extention_map.begin(); it != _extention_map.end(); it++)
 	{
@@ -56,7 +56,7 @@ string	response::get_content_type(string extention)
 	return "";
 }
 
-string	response::get_extention(string content_type)
+string	Response::get_extention(string content_type)
 {
 	mapstring::iterator it = _extention_map.find(content_type);
 	if (it != _extention_map.end())
@@ -64,35 +64,35 @@ string	response::get_extention(string content_type)
 	return "";
 }
 
-void	response::reset_values()
+void	Response::reset_values()
 {
 	_initial_line.clear();
 	_headers.clear();
 	_body.clear();
 }
 
-void response::init()
+void Response::init()
 {
 	_codes(); 
 	_extentions();
 }
 
-void	response::fill_initial_line(const string version, const string _code)
+void	Response::fill_initial_line(const string version, const string _code)
 {
 	_initial_line = version + " " + _code + " " + _code_map[_code] + "\r\n";
 }
 
-void	response::fill_header(const string header, const string value)
+void	Response::fill_header(const string header, const string value)
 {
 	_headers += (header + ": " + value + "\r\n");
 }
 
-string	&response::get_initial_line()
+string	&Response::get_initial_line()
 {
 	return _initial_line;
 }
 
-string	&response::get_headers()
+string	&Response::get_headers()
 {
 	return _headers;
 }
@@ -105,7 +105,7 @@ string file_get(string File)
 	return file_content;
 }
 
-int	response::simple_response(Request &Request, string code)
+int	Response::simple_Response(Request &Request, string code)
 {
 	string error;
 	fill_initial_line(Request.http_version, code);
@@ -131,17 +131,17 @@ int	response::simple_response(Request &Request, string code)
 
 
 
-int	response::Create_response(Request & Request, string code)
+int	Response::Create_Response(Request & Request, string code)
 {
 	reset_values();
 	if (code != "")
-		return simple_response (Request, code);
+		return simple_Response (Request, code);
 	else if (Request._location.get_real() == -1)
-		return simple_response (Request, "404");
+		return simple_Response (Request, "404");
 	else if (Request._location.find_element("return"))
 		return redirection (Request, 0);
 	else if (!Request._location.is_method_allowed(Request.method))
-		return simple_response (Request, "405");
+		return simple_Response (Request, "405");
 	else if (Request.method == "GET")
 		return Get_method(Request);
 	else if (Request.method == "DELETE")

@@ -1,5 +1,5 @@
 #include "Server.hpp"
-#include "../response/response.hpp"
+#include "../Response/Response.hpp"
 
 size_t convert(string num) {
     int len = num.length();

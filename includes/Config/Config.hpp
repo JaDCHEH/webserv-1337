@@ -5,7 +5,7 @@
 
 typedef std::vector<Server> servervect;
 
-class config
+class Config
 {
 	public:
 		void	conf(string conf);

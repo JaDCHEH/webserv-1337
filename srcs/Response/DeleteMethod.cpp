@@ -1,4 +1,4 @@
-#include "response.hpp"
+#include "../../includes/Response/Response.hpp"
 
 int clear_dir(const string& dir_name) 
 {
@@ -46,7 +46,7 @@ int clear_dir(const string& dir_name)
 	return 204;
 }
 
-int	response::Delete_method(Request &Request)
+int	Response::Delete_method(Request &Request)
 {
 	string fullpath = Request._location.get_element("root") + Request.path;
 	DIR *dir = opendir(fullpath.c_str());
@@ -57,28 +57,28 @@ int	response::Delete_method(Request &Request)
 		if (fullpath.back() != '/')
 		{
 			Request.path += '/';
-			return simple_response(Request, "409");
+			return simple_Response(Request, "409");
 		}
 		clear_dir(fullpath);
 		result = clear_dir(fullpath);
 		if (result != 204)
-			return simple_response(Request, std::to_string(result));
+			return simple_Response(Request, std::to_string(result));
 		result = rmdir(fullpath.c_str());
 		if (result)
 		{
 			if (result == EACCES)
-				return simple_response(Request, "500");
-			return simple_response(Request, "403");
+				return simple_Response(Request, "500");
+			return simple_Response(Request, "403");
 		}
 		else
-			return simple_response(Request , "204");
+			return simple_Response(Request , "204");
 	}
 	result = unlink(fullpath.c_str());
 	if (result)
 	{
 		if(result == EACCES)
-			return simple_response(Request, "500");
-		return simple_response(Request, "403");
+			return simple_Response(Request, "500");
+		return simple_Response(Request, "403");
 	}
-	return simple_response(Request , "204");
+	return simple_Response(Request , "204");
 }
