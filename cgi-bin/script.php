@@ -3,11 +3,6 @@ session_start();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $avatar = $_FILES['avatar'];
-    if (!isset($avatar))
-    {
-        echo 'there is a problem here!';
-        exit(1);
-    }
     $avatar_name = $avatar['name'];
     $avatar_tmp_name = $avatar['tmp_name'];
     $avatar_size = $avatar['size'];

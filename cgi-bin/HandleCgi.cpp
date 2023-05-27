@@ -88,6 +88,8 @@ int response::handle_cgi(Request &request, string file) {
     char **argv = new char *[3];
 
     // Set environment variables for the CGI script
+    std::cout << "/************************************/\n" << "request : " << request._req << std::endl;
+    std::cout << "/************************************/" << std::endl;
     fill_env(file, request, _env);
     env = convertMapToCharArray(_env);
     argv[0] = strdup(execut.c_str());
@@ -109,7 +111,9 @@ int response::handle_cgi(Request &request, string file) {
             close(in);
         }
         dup2(out, 1); 
-        close(out);  
+        close(out);
+        // for (int i = 0; env[i]; i++)
+        //     std::cerr << "env -> " << env[i] << std::endl;
         execve(argv[0], argv, env);
         // if execve returns, it means there was an error
         perror("execve failed");

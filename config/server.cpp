@@ -110,7 +110,8 @@ void parse(Request &server, string request)
 			header_key = header_key.substr(1);
 		while (header_value.front() == ' ')
 			header_value = header_value.substr(1);
-		server.headers[header_key] = header_value;
+		if (server.headers.find(header_key) == server.headers.end())	
+			server.headers[header_key] = header_value;
 	}
 	server.body = request.substr(request.find("\r\n\r\n") + 4); // Set the body to everything after the headers
 	if (server.method == "POST")
@@ -400,8 +401,8 @@ void Server::must_fill()
 		_elements["root"] = "/";
 	if (_elements.find("listen") == _elements.end())
 		_elements["listen"] = "8080";
-	if (_elements.find("max_body_size") == _elements.end())
-		_elements["max_body_size"] = "2000000000";
+	if (_elements.find("bodysize") == _elements.end())
+		_elements["bodysize"] = "2000000000";
 	if (!(std::all_of(_elements["max_body_size"].begin(), _elements["max_body_size"].end(), ::isdigit)))
 	{
 		std::cerr << "the body size isn't only digits " << _elements["max_body_size"] << std::endl;
