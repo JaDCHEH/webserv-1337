@@ -4,4 +4,5 @@ default.conf
 database
 .vscode
 .DS_Store
-./upload/
+upload
+cgi-bin/uploads
