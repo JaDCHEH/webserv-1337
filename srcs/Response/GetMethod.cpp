@@ -27,7 +27,10 @@ int	Response::get_file(Request & Request, const string &file)
 	if (!Request._first)
 	{
 		fill_initial_line(Request.http_version, "200");
-		fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
+		if (file.find_last_of(".") == string::npos)
+			fill_header("Content-Type", get_content_type(""));
+		else
+			fill_header("Content-Type", get_content_type(file.substr(file.find_last_of("."))));
 		file_stream.seekg(0, file_stream.end);
 		fill_header("Content-Length", std::to_string(file_stream.tellg()));
 		_headers += "\r\n";
