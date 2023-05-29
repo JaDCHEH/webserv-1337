@@ -48,7 +48,7 @@ int clear_dir(const string& dir_name)
 
 int	Response::Delete_method(Request &Request)
 {
-	string fullpath = Request._location.get_element("root") + Request.path;
+	string fullpath = Request.fullpath;
 	DIR *dir = opendir(fullpath.c_str());
 	int result ;
 	if (dir)

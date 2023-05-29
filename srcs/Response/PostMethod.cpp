@@ -22,6 +22,6 @@ int	Response::Post_method(Request &Request)
 		}
 	}
 	else // CGI part // I need to check if file or dir 
-		return handle_cgi(Request, Request._location.get_element("root") + Request.path + Request._location.get_element("index"));
+		return handle_cgi(Request, Request.fullpath + Request._location.get_element("index"));
 	return (0);
 }

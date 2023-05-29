@@ -88,7 +88,7 @@ Server	Server::server_fill(std::ifstream &ifs, string &line)
 				else{
 					if(vector[0].back() != '/')
 						vector[0] += '/';
-					templocation.location_fill(ifs, line);
+					templocation.location_fill(ifs, line, vector[0]);
 					_location[vector[0]] = templocation;
 				}
 		}
@@ -138,14 +138,18 @@ Location	Server::matchlocation(string & uri)
 	Location fake;
 	fake.set_real(-1);
 	string urii =  uri;
+	string smatched;
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
 		if (strncmp(i->first.c_str(), urii.c_str(), i->first.size() - 1) == 0){
 			if (match < i->first.size())
+			{
 				match = i->first.size();
+				smatched = i->first;
+			}
 		}
 	}
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
-		if (i->first.size() == match)
+		if (i->first.size() == match && i->first == smatched)
 			return i->second;
 	}
 	return fake;

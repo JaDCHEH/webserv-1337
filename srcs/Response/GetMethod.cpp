@@ -114,7 +114,7 @@ int	Response::auto_index(Request &request, string &path)
 
 int	Response::Get_method(Request & Request)
 {
-	string fullpath = Request._location.get_element("root") + Request.path;
+	string fullpath = Request.fullpath;
 	DIR *dir = opendir(fullpath.c_str());
 	// adding CGI if we found dir
 	if (Request._location.get_CgiFlag() && dir)
@@ -136,7 +136,6 @@ int	Response::Get_method(Request & Request)
 		else if (Request._location.get_element("auto_index") == "off")
 			return simple_Response(Request, "403");
 	}
-	
 	int fd = open(fullpath.c_str(), O_RDONLY);
 	if (fd >= 0)
 	{

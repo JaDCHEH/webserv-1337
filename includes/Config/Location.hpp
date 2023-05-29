@@ -39,7 +39,7 @@ class Location {
 		mapstring	_elements;
 		int			_cgiFlag;//Flag to check if CGI is on
 	public:
-		void		location_fill(std::ifstream &ifs, string &line);
+		void		location_fill(std::ifstream &ifs, string &line, string &name);
 		int			location_elements(const string &element);
 		void		set_real(int a);
 		int			get_real();

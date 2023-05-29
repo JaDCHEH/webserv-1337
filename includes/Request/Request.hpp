@@ -13,6 +13,7 @@ class Request {
 		string		http_version;
 		Location	_location;
 		mapstring	_error_page;
+		string		fullpath;
 		string		_buffer;
 		int			_first;
 		size_t		_size_to_write;

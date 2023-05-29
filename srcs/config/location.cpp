@@ -115,14 +115,17 @@ void Location::must_fill(const string &root)
 		_elements["upload_dir"] = "./upload";
 	if (_elements["upload_dir"].back() != '/')
 		_elements["upload_dir"] += "/";
+	if (_elements["root"].back() != '/')
+		_elements["root"] += "/";
 }
 
-void	Location::location_fill(std::ifstream &ifs, string &line)
+void	Location::location_fill(std::ifstream &ifs, string &line, string &name)
 {
 	string word;
 	stringvect vector;
 	int allowed = 0;
 
+	_elements["name"] = name;
 	std::getline(ifs, line);
 	_cgiFlag = 0;// init cgi flag
 	_real = 1;

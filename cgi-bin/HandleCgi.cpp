@@ -75,21 +75,19 @@ void    fill_env( string file, Request &request, mapstring &_env) {
     _env["SCRIPT_FILENAME"] = file;
     if (request.method == "GET")
         _env["QUERY_STRING"] = request.query_str;
-    // we need to add cookies
+    _env["HTTP_COOKIE"] = request.getHeader("Cookie");
 }
 
 
 int Response::handle_cgi(Request &request, string file) {
-    char buf[1024];
+    // char buf[1024];
+    string buf;
     mapstring   _env;
-    // int     open_file;
-    string resp, execut = request._location.get_element("root") + "/cgi-bin/php-cgi";
+    string resp, execut = request._location.get_element("root") + "/php-cgi";
     char **env;
     char **argv = new char *[3];
 
     // Set environment variables for the CGI script
-    std::cout << "/************************************/\n" << "request : " << request._req << std::endl;
-    std::cout << "/************************************/" << std::endl;
     fill_env(file, request, _env);
     env = convertMapToCharArray(_env);
     argv[0] = strdup(execut.c_str());
@@ -121,11 +119,11 @@ int Response::handle_cgi(Request &request, string file) {
     }
     waitpid(0, NULL, 0);
     close(out);
-    int outpoun = open("out", O_RDWR, 0644);
+    std::ifstream input("out");
+    std::stringstream sss;
     fill_initial_line(request.http_version, "200");
-    resp += _initial_line;
-    while(read(outpoun, &buf, 1024) > 0)
-        resp += buf;
+    sss << input.rdbuf();
+    resp = _initial_line + sss.str();
     send(request.socket, resp.c_str(), resp.size(), 0);
     unlink("out");
     unlink("in");
