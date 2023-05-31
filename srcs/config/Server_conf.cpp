@@ -149,7 +149,7 @@ Location	Server::matchlocation(string & uri)
 		}
 	}
 	for (locationmap::iterator i = _location.begin(); i != _location.end(); i++){
-		if (i->first.size() == match && i->first == smatched)
+		if (i->first == smatched)
 			return i->second;
 	}
 	return fake;

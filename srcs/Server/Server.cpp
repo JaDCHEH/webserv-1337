@@ -133,7 +133,8 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> serv
 				it->request._error_page = _error_page;
 				temp = matchname(it->request, it->request.getHeader("Host"), servers);
 				it->request._location = temp.matchlocation(it->request.path);
-				it->request.fullpath = it->request.path.replace(0, it->request._location.get_element("name").size(), it->request._location.get_element("root"));
+				string reqpath = it->request.path;
+				it->request.fullpath =reqpath.replace(0, it->request._location.get_element("name").size(), it->request._location.get_element("root"));
 				if (isValidRequestURI(it->request.path))
 					it->request.code = "400";
 				else if (checkUriLength(it->request.path))

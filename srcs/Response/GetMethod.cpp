@@ -124,7 +124,7 @@ int	Response::Get_method(Request & Request)
 	if (dir)
 	{
 		closedir(dir);
-		if (fullpath.back() != '/')
+		if (Request.path.back() != '/')
 		{
 			Request.path += '/';
 			return redirection(Request, 1);
