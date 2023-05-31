@@ -116,11 +116,15 @@ int	Response::Get_method(Request & Request)
 {
 	string fullpath = Request.fullpath;
 	DIR *dir = opendir(fullpath.c_str());
+	string file;
+	string temp = Request._location.get_element("index");
+	if (temp != "")
+	{
+		size_t pos = temp.find_last_of(".");
+		if (pos != string::npos)
+			file = temp.substr(pos);
+	}
 	// adding CGI if we found dir
-	if (Request._location.get_CgiFlag() && dir)
-		return handle_cgi(Request, fullpath + Request._location.get_element("index"));
-	else if (Request._location.get_CgiFlag())
-		return handle_cgi(Request, fullpath);
 	if (dir)
 	{
 		closedir(dir);
@@ -130,7 +134,12 @@ int	Response::Get_method(Request & Request)
 			return redirection(Request, 1);
 		}
 		else if (Request._location.get_element("index") != "")
+		{
+			if (Request._location.get_CgiFlag() && (file == ".php" || file == ".py"))
+				return handle_cgi(Request, fullpath + Request._location.get_element("index"));
 			return get_file(Request, fullpath + Request._location.get_element("index"));
+		}
+			
 		else if (Request._location.get_element("auto_index") == "on")
 			return auto_index(Request, fullpath);
 		else if (Request._location.get_element("auto_index") == "off")
@@ -140,6 +149,8 @@ int	Response::Get_method(Request & Request)
 	if (fd >= 0)
 	{
 		close(fd);
+		if (Request._location.get_CgiFlag() && (fullpath.substr(fullpath.find_last_of(".")) == ".php" || fullpath.substr(fullpath.find_last_of(".")) == ".py"))
+			return handle_cgi(Request, fullpath);
 		return get_file(Request, fullpath);
 	}
 	return simple_Response(Request, "404");

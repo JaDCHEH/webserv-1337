@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $avatar = $_FILES['avatar'];
@@ -16,14 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($avatar_error === 0) {
             if ($avatar_size < 1000000) {
                 $avatar_name_new = uniqid('', true) . '.' . $avatar_actual_ext;
-                $avatar_destination = __DIR__ . "/uploads/" . $avatar_name_new;
+                $avatar_destination = '/Users/ie-laabb/Desktop/webserv/cgi-bin/uploads/' . $avatar_name_new;
                 move_uploaded_file($avatar_tmp_name, $avatar_destination);
-                $_COOKIE['name'] = $_POST['name'];
-                $_COOKIE['email'] = $_POST['email'];
-                $_COOKIE['avatar'] = $avatar_destination;
-                setcookie('name', $_POST['name'], time() + 3600 * 24 * 7);
-                setcookie('email', $_POST['email'], time() + 3600 * 24 * 7);
-                setcookie('avatar', $avatar_destination, time() + 3600 * 24 * 7);
+                $_SESSION['name'] = $_POST['name'];
+                $_SESSION['email'] = $_POST['email'];
+                $_SESSION['avatar'] = $avatar_destination;
             } else {
                 echo 'File too big';
                 exit(1);
@@ -37,22 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit(1);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['logout'])) {
-    unset($_COOKIE['name']);
-    unset($_COOKIE['email']);
-    unset($_COOKIE['avatar']);
-    setcookie('name', '', time() - 3600);
-    setcookie('email', '', time() - 3600);
-    setcookie('avatar', '', time() - 3600);
+    unset($_SESSION['name']);
+    unset($_SESSION['email']);
+    unset($_SESSION['avatar']);
+    session_destroy();
 }
 ?>
+
 <!DOCTYPE html>
 <div>
-    <?php if (isset($_COOKIE['name']) && isset($_COOKIE['email'])): ?>
+    <?php if (isset($_SESSION['name']) && isset($_SESSION['email'])): ?>
         <p>
-            <center><h1>Hello, <?= $_COOKIE['name'] ?>!</h1></center><hr>
-            <center><img src="<?= $_COOKIE['avatar'] ?>" alt="avatar" width="300" height="300" style="object-fit: cover;"></center><hr><br/>
-            <center><?php echo $_COOKIE['name']; ?></center>
-            <center><?php echo $_COOKIE['email']; ?></center><br/><br/>
+            <center><h1>Hello, <?= $_SESSION['name'] ?>!</h1></center><hr>
+            <center><img src="<?= $_SESSION['avatar'] ?>" alt="avatar" width="300" height="300" style="object-fit: cover;"></center><hr><br/>
+            <center><?php echo $_SESSION['name']; ?></center>
+            <center><?php echo $_SESSION['email']; ?></center><br/><br/>
             <center><a href="?logout">Logout</a></center>
         </p>
     <?php else: ?>
