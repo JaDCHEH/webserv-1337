@@ -2,7 +2,7 @@ NAME = webserv
 
 CC = @c++
 
-CFLAGS =  -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
+CFLAGS =  -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g3
 
 CPP_FILES = webserv.cpp\
 			srcs/Config/Config.cpp\

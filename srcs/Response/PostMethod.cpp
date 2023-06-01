@@ -28,7 +28,11 @@ int	Response::Post_method_cgi(Request &Request)
 	int fd = open(fullpath.c_str(), O_RDONLY);
 	if (fd >= 0)
 	{
-		string extention = fullpath.substr(fullpath.find_last_of("."));
+		string extention;
+		if (fullpath.find_last_of(".") != std::string::npos)
+			extention = fullpath.substr(fullpath.find_last_of("."));
+		else
+			extention = "";
 		close(fd);
 		if (Request._location.get_CgiFlag() && (extention == ".php" || extention == ".py"))
 			return handle_cgi(Request, Request.fullpath, extention);
