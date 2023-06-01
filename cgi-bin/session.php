@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($avatar_error === 0) {
             if ($avatar_size < 1000000) {
                 $avatar_name_new = uniqid('', true) . '.' . $avatar_actual_ext;
-                $avatar_destination = '/Users/ie-laabb/Desktop/webserv/cgi-bin/uploads/' . $avatar_name_new;
+                $avatar_destination = 'uploads/' . $avatar_name_new;
                 move_uploaded_file($avatar_tmp_name, $avatar_destination);
                 $_SESSION['name'] = $_POST['name'];
                 $_SESSION['email'] = $_POST['email'];

@@ -58,7 +58,7 @@ int Response::handle_cgi(Request &request, string file, string exten) {
     fill_env(file, request, _env);
     env = convertMapToCharArray(_env);
     if (exten == ".php")
-        execut = "/Users/ie-laabb/Desktop/webserv/cgi-bin/php-cgi";
+        execut = "/Users/cjad/Desktop/webserv/cgi-bin/php-cgi";
     else
         execut = "/usr/bin/python3";
     argv[0] = strdup(execut.c_str());
