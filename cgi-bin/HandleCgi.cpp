@@ -47,20 +47,21 @@ void    fill_env( string file, Request &request, mapstring &_env) {
     _env["HTTP_COOKIE"] = request.getHeader("Cookie");
 }
 
-int Response::handle_cgi(Request &request, string file) {
+int Response::handle_cgi(Request &request, string file, string exten) {
     string buf;
     mapstring   _env;
-    string py_execut = "python3";
-    string resp, execut =  "/Users/ie-laabb/Desktop/webserv/cgi-bin/php-cgi";
+    string resp, execut;
     char **env;
     char **argv = new char *[3];
 
     // Set environment variables for the CGI script
-    std::cout << "check file path in handle cgi : " << file << std::endl;
-    // std::cout << "check executable path : " << execut << std::endl;
     fill_env(file, request, _env);
     env = convertMapToCharArray(_env);
-    argv[0] = strdup(py_execut.c_str());
+    if (exten == ".php")
+        execut = "/Users/ie-laabb/Desktop/webserv/cgi-bin/php-cgi";
+    else
+        execut = "/usr/bin/python3";
+    argv[0] = strdup(execut.c_str());
     argv[1] = strdup(file.c_str());
     argv[2] = NULL;
     if (request.method == "POST")

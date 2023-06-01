@@ -116,13 +116,13 @@ int	Response::Get_method(Request & Request)
 {
 	string fullpath = Request.fullpath;
 	DIR *dir = opendir(fullpath.c_str());
-	string file;
+	string exten;
 	string temp = Request._location.get_element("index");
 	if (temp != "")
 	{
 		size_t pos = temp.find_last_of(".");
 		if (pos != string::npos)
-			file = temp.substr(pos);
+			exten = temp.substr(pos);
 	}
 	// adding CGI if we found dir
 	if (dir)
@@ -135,8 +135,8 @@ int	Response::Get_method(Request & Request)
 		}
 		else if (Request._location.get_element("index") != "")
 		{
-			if (Request._location.get_CgiFlag() && (file == ".php" || file == ".py"))
-				return handle_cgi(Request, fullpath + Request._location.get_element("index"));
+			if (Request._location.get_CgiFlag() && (exten == ".php" || exten == ".py"))
+				return handle_cgi(Request, fullpath + Request._location.get_element("index"), exten);
 			return get_file(Request, fullpath + Request._location.get_element("index"));
 		}
 			
@@ -148,9 +148,10 @@ int	Response::Get_method(Request & Request)
 	int fd = open(fullpath.c_str(), O_RDONLY);
 	if (fd >= 0)
 	{
+		string extention = fullpath.substr(fullpath.find_last_of("."));
 		close(fd);
-		if (Request._location.get_CgiFlag() && (fullpath.substr(fullpath.find_last_of(".")) == ".php" || fullpath.substr(fullpath.find_last_of(".")) == ".py"))
-			return handle_cgi(Request, fullpath);
+		if (Request._location.get_CgiFlag() && (extention == ".php" || extention == ".py"))
+			return handle_cgi(Request, fullpath, extention);
 		return get_file(Request, fullpath);
 	}
 	return simple_Response(Request, "404");

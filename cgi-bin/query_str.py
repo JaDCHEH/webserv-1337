@@ -1,35 +1,26 @@
 import cgi
 import cgitb
 import http.cookies
+import os
+import urllib.parse
 
-# enable error reporting
-cgitb.enable()
+# Get the query string from the environment variable
+query_string = os.environ['QUERY_STRING']
 
-# get the form data submitted by the user
-form = cgi.FieldStorage()
+# Parse the query string into an array of variables
+query_vars = dict(urllib.parse.parse_qsl(query_string))
 
-# get the value of the "name" parameter
-name = form.getvalue("name")
-
-# create a new cookie
-cookie = http.cookies.SimpleCookie()
-cookie["name"] = name
-
-# set the Content-Type header to indicate that the response will be in HTML format
+# Set the appropriate headers for the response
 print("Content-Type: text/html")
 print()
-
-# output the HTML code to create the web page
-print("<html><head><title>Greetings</title></head><body>")
-if name:
-    print("<h1>Hello, {}!</h1>".format(name))
+# Check if there are query string variables
+if query_vars:
+    # Convert the query variables to HTML
+    html = "<h1>Query String Variables:</h1>"
+    for key, value in query_vars.items():
+        html += f"<p>{key} = {value}</p>"
 else:
-    print("<h1>Please enter your name.</h1>")
-print('<form method="GET" action="script.py">')
-print('Name: <input type="text" name="name">')
-print('<input type="submit" value="Submit">')
-print('</form>')
-print("</body></html>")
+    html = "<center><h1>Sadge :( no query string variables found.</h1></center>"
 
-# set the cookie in the response
-print(cookie.output())
+# Send the HTML as the response
+print(html)
