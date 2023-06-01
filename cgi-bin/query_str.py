@@ -20,7 +20,7 @@ if query_vars:
     for key, value in query_vars.items():
         html += f"<p>{key} = {value}</p>"
 else:
-    html = "<center><h1>Sadge :( no query string variables found.</h1></center>"
+    html = "<center><h1>Sadge :(</h1><h1>No query string variables found.</h1></center>"
 
 # Send the HTML as the response
 print(html)

@@ -14,7 +14,8 @@ CPP_FILES = webserv.cpp\
 			srcs/Response/DeleteMethod.cpp\
 			srcs/Response/PostMethod.cpp\
 			srcs/Request/Request.cpp \
-			cgi-bin/HandleCgi.cpp
+			cgi-bin/HandleCgi.cpp\
+			cgi-bin/cgi.cpp
 
 all : $(NAME)
 
