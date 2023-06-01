@@ -1,4 +1,4 @@
-#include "cgi.hpp"
+#include "../includes/Cgi/cgi.hpp"
 
 Cgi::Cgi( Request& request, string file, string extention, Response& res) {
     _file = file;

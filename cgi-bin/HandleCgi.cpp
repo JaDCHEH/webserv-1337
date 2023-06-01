@@ -1,4 +1,4 @@
-#include "cgi.hpp"
+#include "../includes/Cgi/cgi.hpp"
 
 int Response::handle_cgi(Request &request, string file, string exten) {
     Cgi cgi(request, file, exten, *this);
