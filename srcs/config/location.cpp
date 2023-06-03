@@ -75,12 +75,8 @@ void	Location::check_validity()
 			exit(1);
 		}
 	}
-	// check if the CGI is on or not
-	for (mapstring::iterator it = _elements.begin(); it != _elements.end(); it++)
-	{
-		if ((*it).first == "cgi" && (*it).second == "on")
-			set_CgiFlag(1);
-	}
+	if (_elements["cgi"] == "on")
+		set_CgiFlag(1);
 }
 
 void	Location::set_CgiFlag(int a)

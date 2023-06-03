@@ -6,7 +6,7 @@ int serv_elements(string element)
 
 	serv_ele["index"] = "";
 	serv_ele["error_page"] = "";
-	serv_ele["bodysize"] = "";
+	serv_ele["max_body_size"] = "";
 	serv_ele["root"] = "";
 	serv_ele["servername"] = "";
 	serv_ele["listen"] = "";
@@ -24,16 +24,21 @@ void Server::must_fill()
 		_elements["root"] = "/";
 	if (_elements.find("listen") == _elements.end())
 		_elements["listen"] = "8080";
-	if (_elements.find("bodysize") == _elements.end())
-		_elements["bodysize"] = "2000000000";
+	if (_elements.find("max_body_size") == _elements.end())
+		_elements["max_body_size"] = "2000000000";
 	if (!(std::all_of(_elements["max_body_size"].begin(), _elements["max_body_size"].end(), ::isdigit)))
 	{
-		std::cerr << "the body size isn't only digits " << _elements["max_body_size"] << std::endl;
+		std::cerr << "the max_body_size must be digits only " << _elements["max_body_size"] << std::endl;
 		exit(1);
-	};
+	}
 	for (locationmap::iterator it = _location.begin(); it != _location.end(); it++)
 		it->second.must_fill(_elements["root"]);
 	r = 0;
+	if (!(std::all_of(_elements["listen"].begin(), _elements["listen"].end(), ::isdigit)))
+	{
+		std::cerr << "Listen  must be digits only" <<  _elements["listen"] << std::endl;
+		exit(1);
+	}
 }
 
 

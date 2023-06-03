@@ -137,7 +137,7 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> serv
 					it->request.code = "400";
 				else if (checkUriLength(it->request.path))
 					it->request.code = "414";
-				else if (checkRequestBodySize(it->request.body, std::stoul(temp.get_element("bodysize"))))
+				else if (checkRequestBodySize(it->request.body, std::stoul(temp.get_element("max_body_size"))))
 					it->request.code = "413";
 				it->isSending = false;
 			}
