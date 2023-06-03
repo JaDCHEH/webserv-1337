@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>Example Page</title>
+</head>
+<body>
+
+<h1>Example Page</h1>
+
+        <input type="file">
+        <button id="iin" type="submit">submit</button>
+
+
+
+    <script>
+        const cmd = () => {
+            var input = document.querySelector('input[type="file"]')
+            const file = input.files[0];
+
+            fetch(`/${file.name}`, {
+                method: 'POST',
+                mode: 'cors',
+                body: input.files[0],
+                headers: {'Content-Disposition': `attachment; filename="${file.name}"`}
+            });
+        }
+        const ii = document.querySelector("#iin");
+        ii.addEventListener("click", cmd);
+    </script>
+</body>
+</html>
