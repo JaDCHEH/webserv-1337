@@ -12,6 +12,11 @@ int Response::handle_cgi(Request &request, string file, string exten) {
     // create a new process to execute the CGI script
     int out = open("out", O_WRONLY | O_CREAT , 0755);
     int pid = fork();
+    if (pid < 0)
+    {
+        cgi._flag = false;
+        return (simple_Response(request, "500"));
+    }
     if (pid == 0) {
         if (request.method == "POST")
         {

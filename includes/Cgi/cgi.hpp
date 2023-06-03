@@ -26,6 +26,7 @@ class Cgi {
 		void 	fill_env( string , Request &, mapstring &);
 		void    free_all(char **, char **);
 		char**	convertMapToCharArray(mapstring& );
+		bool		_flag;
 };
 
 #endif
