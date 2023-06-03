@@ -1,6 +1,7 @@
 #include "../includes/Cgi/cgi.hpp"
 
 Cgi::Cgi( Request& request, string file, string extention, Response& res) {
+    _flag = true;
     _file = file;
     _exten = extention;
     _req = request;
@@ -84,7 +85,8 @@ Cgi::~Cgi( void ) {
     std::stringstream sss;
     sss << input.rdbuf();
     resp = _init_line + sss.str();
-    send(_req.socket, resp.c_str(), resp.size(), 0);
+    if (_flag == true)
+        send(_req.socket, resp.c_str(), resp.size(), 0);
     unlink("out");
     unlink("in");
 }

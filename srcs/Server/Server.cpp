@@ -83,7 +83,6 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> serv
 		client.address_length = sizeof(client.address);
 		SOCKET socket_client = accept(socket_listen,
 									  (struct sockaddr *)&client.address, &client.address_length);
-		// std::cout << "new socket "<< socket_client << std::endl;
 		if (!ISVALIDSOCKET(socket_client))
 		{
 			std::cout << "Accept failed errno: "
@@ -97,7 +96,6 @@ void	Server::recieve_cnx(fd_set &reads, fd_set &writes, std::vector<Server> serv
 					address_buffer, sizeof(address_buffer), 0, 0,
 					NI_NUMERICHOST);
 	}
-	// std::cout << clients.size() << std::endl;
 
 	std::vector<Client>::iterator it = clients.begin();
 	std::vector<Client>::iterator end = clients.end();
