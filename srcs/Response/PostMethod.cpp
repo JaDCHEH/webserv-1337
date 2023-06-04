@@ -51,7 +51,7 @@ int	Response::Post_method(Request &Request)
 		std::ofstream file(Request._location.get_element("upload_dir")
 			+ name + get_extention(Request.getHeader("Content-Type")));
 		if (!file)
-			return simple_Response(Request, "404");
+			return simple_Response(Request, "403");
 		file << Request.body;
 		file.close();
 		return simple_Response(Request, "201");
