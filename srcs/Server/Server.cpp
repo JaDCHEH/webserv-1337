@@ -2,7 +2,7 @@
 
 #include "../../includes/Response/Response.hpp"
 
-void	Server::setting_PORT()
+void	Server::setting_PORT(int i)
 {
 	std::cout << "Configuring local address..." << std::endl;
 	memset(&hints, 0, sizeof(hints));
@@ -25,10 +25,14 @@ void	Server::setting_PORT()
 	if (bind(socket_listen, bind_address->ai_addr, bind_address->ai_addrlen))
 	{
 		std::cout << "Failed to bind to port: " << PORT << " " << strerror(errno) << std::endl;
-	//	exit(EXIT_FAILURE);
+		if (i == 0)
+		{
+			std::cout << "The first port couldn't bind ,check if another webserv is running" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
-
-	std::cout << "Listening..." << std::endl;
+	else
+		std::cout << "Listening..." << std::endl;
 	if (listen(socket_listen, 1024) < 0)
 	{
 		std::cout << "Failed to listen on socket."

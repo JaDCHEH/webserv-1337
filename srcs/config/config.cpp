@@ -5,7 +5,7 @@
 void	Config::setup_sockets()
 {
 	for (size_t i = 0; i < _servers.size(); i++)
-		_servers[i].setting_PORT();
+		_servers[i].setting_PORT(i);
 }
 
 void	Config::setup_cnx(fd_set &reads, fd_set &writes)

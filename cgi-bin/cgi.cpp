@@ -11,7 +11,7 @@ Cgi::Cgi( Request& request, string file, string extention, Response& res) {
 	_init_line = res.get_initial_line();
 }
 
-void    Cgi::free_all(char **env, char **av)
+void    Cgi::free_all()
 {
     for (int i = 0; env[i]; i++)
         delete[] env[i];
@@ -80,7 +80,7 @@ char** Cgi::getArgv( void ) {
 }
 
 Cgi::~Cgi( void ) {
-	free_all(env, av);
+	free_all();
     std::ifstream input("out");
     std::stringstream sss;
     sss << input.rdbuf();
