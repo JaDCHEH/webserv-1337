@@ -2,7 +2,7 @@
 
 42 project, recoding our own web server in C++. A program capable of running an HTTP server, handling requests, and parsing configuration files.
 
-Team : [JaDCHEH](https://github.com/JaDCHEH) / [ZqkNyx](https://github.com/ZakNyx) / [ie-laabb](https://github.com/elyass546)
+Team : [JaDCHEH](https://github.com/JaDCHEH) / [ZakNyx](https://github.com/ZakNyx) / [ie-laabb](https://github.com/elyass546)
 
 [Subject](https://cdn.intra.42.fr/pdf/pdf/13265/en.subject.pdf)
 
